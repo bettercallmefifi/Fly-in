@@ -1,22 +1,29 @@
-.PHONY: install run debug clean lint lint-strict
+MAP ?= map
+
+venv:
+	python3 -m venv venv
 
 install:
-	pip install pygame flake8 mypy
+	pip install -r requirements.txt
 
 run:
-	python main.py
+	python3 src/main.py $(MAP)
 
 debug:
-	python -m pdb main.py
+	python3 -m pdb src/main.py $(MAP)
 
 clean:
-	find . -type d -name "__pycache__" -exec rm -r {} +
-	find . -type d -name ".mypy_cache" -exec rm -r {} +
+	find . -type d -name "__pycache__" -exec rm -rf {} +
+	find . -type d -name ".mypy_cache" -exec rm -rf {} +
+	find . -type d -name "cache" -exec rm -rf {} +
+	find . -type f -name "*.pyc" -delete
 
 lint:
-	flake8 .
-	mypy --warn-return-any --warn-unused-ignores --ignore-missing-imports --disallow-untyped-defs --check-untyped-defs .
+	flake8 src/
+	mypy src/ --warn-return-any --warn-unused-ignores --ignore-missing-imports --disallow-untyped-defs --check-untyped-defs
 
 lint-strict:
-	flake8 .
-	mypy --strict .
+	flake8 src/
+	mypy src/ --strict
+
+.PHONY: run clean lint lint-strict debug install
