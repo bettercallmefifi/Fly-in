@@ -1,4 +1,3 @@
-# main.py
 import sys
 from parsing import Parser, ParsingError
 
@@ -14,7 +13,6 @@ def main():
     
     try:
         parser.parsing()
-        parser.parse_nb_drones()
     except ParsingError as e:
         print(f"Error: {e}")
 

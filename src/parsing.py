@@ -1,3 +1,6 @@
+from graph import Graph
+from typing import Tuple
+
 class ParsingError(Exception):
 	pass
 
@@ -47,21 +50,43 @@ class Parser:
 				raise ParsingError("There is no data !")
 
 	def parse_nb_drones(self, line: str) -> None:
-		line = line.split(": ")
+		line = line.split(":")
 		if len(line) != 2:
 			raise ParsingError("Invalid data !")
 		try:
-			nb_drones = int(line[1])
+			nb_drones = int(line[1].strip())
 		except ValueError:
 			raise ParsingError("Invalid nb_drones")
 		if nb_drones <= 0:
 			raise ParsingError("The value should be positive !")
-		
+		# self.graph.nb_drones = nb_drones		
+
 	def parse_start_zone(self, line: str) -> None:
-		pass
+		line = line.split(":", 1)
+		if len(line) != 2:
+			raise ParsingError("Invalid data !")
+		data_list = line[1].strip().split()
+		if not 3 <= len(data_list) <= 4:
+			raise ParsingError("Invalid data: less than 3 or more than 4")
+		if "-" in data_list[0]:
+			raise ParsingError("Forbids dashes in zone names !")
+		X, Y = self.valid_xy(data_list[1], data_list[2])
+
 	def parse_end_zone(self, line: str) -> None:
 		pass
 	def parse_zone(self, line: str) -> None:
 		pass
 	def parse_connection(self, line: str) -> None:
 		pass
+
+	def valid_xy(self, x: str, y: str) -> Tuple[int, int]:
+		try:
+			X = int(x)
+			print(X)
+			Y = int(y)
+			print(Y)
+		except ValueError:
+			raise ParsingError("Invalid Coordinates !")
+		return X, Y
+	
+	# def valid_metadata(self, metadata: str) -> Dict[str, str | int]:
