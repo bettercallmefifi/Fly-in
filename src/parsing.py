@@ -8,6 +8,7 @@ class Parser:
     def __init__(self, file_name: str):
         self.file_name = file_name
         self.zone_names = set()
+        self.seen_connections = set()
 
     def parsing(self):
         try:
@@ -82,13 +83,16 @@ class Parser:
             raise ParsingError(f"Expected <name> <x> <y>, got: {base_elements}")
 
         name = base_elements[0]
-        if "-" in name:
+        t = self.valid_name(name)
+        if t == False:
             raise ParsingError(f"Dashes are forbidden in zone names: '{name}'")
         X, Y = self.valid_xy(base_elements[1], base_elements[2])
-        print(X, Y)
+
+        self.zone_names.add(name)
 
 
     def parse_connection(self, line: str) -> None:
+        data = 1
         line = line.split(":", 1)
         if len(line) != 2:
             raise ParsingError("Invalid data !")
@@ -100,24 +104,22 @@ class Parser:
 
             base_data, meta_part = data_list.split("[", 1)
             metadata_string = meta_part.replace("]", "").strip()
+            data = self.valid_metadata_connection(metadata_string)
+
         else:
             base_data = data_list
-        
-        base_elements = base_data.split()
-        count = 0
-        for i in base_elements:
-            if "-" == i:
-                count += 1
+        base_elements = base_data.split("-", 1)
 
-        if count > 1 or count == 0:
-            raise ParsingError("The connection syntax forbids dashes in zone names !")
-
-        names = base_elements.split("-")
-        if len(names) != 2:
+        if len(base_elements) != 2:
             raise ParsingError(f"Invalid connection format: expected <name1>-<name2>, got '{base_elements}'")
 
-        name1 = names[0].strip()
-        name2 = names[1].strip()
+        name1 = base_elements[0].strip()
+        name2 = base_elements[1].strip()
+        zone1 = self.valid_name(name1)
+        zone2 = self.valid_name(name2)
+
+        if zone1 == False or zone2 == False:
+            raise ParsingError(f"Dashes are forbidden in zone names !")
 
         if name1 not in self.zone_names:
             raise ParsingError(f"Connection error: Zone '{name1}' does not exist!")
@@ -126,8 +128,19 @@ class Parser:
         if name1 == name2:
             raise ParsingError(f"Connection error: Cannot connect zone '{name1}' to itself!")
 
+        connection_pair = frozenset([name1, name2])
 
+        if connection_pair in self.seen_connections:
+            raise ParsingError(f"Duplicate connection detected between {name1} and {name2}!")
 
+        self.seen_connections.add(connection_pair)
+
+        print(data)
+
+    def valid_name(self, name: str) -> bool:
+        if "-" in name:
+            return False
+        return True
 
     def valid_xy(self, x: str, y: str) -> Tuple[int, int]:
         try:
@@ -137,5 +150,25 @@ class Parser:
             raise ParsingError("Invalid Coordinates !")
         return X, Y
 	
-    def valid_metadata(self, metadata: str) -> Dict[str, str | int]:
+    def valid_metadata_hub(self, metadata: str) -> Dict[str, str | int]:
         pass
+
+    def valid_metadata_connection(self, metadata: str) -> int:
+        if not metadata:
+            raise ParsingError("Metadata is empty !")
+        data = metadata.split(" ", 1)
+
+        if len(data) > 1:
+            raise ParsingError("Invalid metadata: most be contain just max_link_capacity !")
+
+        value = data[0].split("=", 1)
+        if value[0] == "max_link_capacity":
+            try:
+                max_capacity = int(value[1])
+            except ValueError:
+                raise ParsingError("Invalid metadata: max must be integer !")
+            if max_capacity < 1:
+                raise ParsingError("Invalid metadata: max must be positive !")
+        else:
+            raise ParsingError("Invalid metadata: 'max_link_capacity' not exist")       
+        return max_capacity
