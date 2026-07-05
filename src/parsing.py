@@ -1,5 +1,6 @@
 from graph import Graph
 from typing import Tuple, Dict
+import random
 
 
 class ParsingError(Exception):
@@ -11,6 +12,7 @@ class Parser:
         self.file_name = file_name
         self.zone_names = set()
         self.seen_connections = set()
+        self.total_drones = 0
 
     def parsing(self):
         try:
@@ -63,14 +65,17 @@ class Parser:
             raise ParsingError("Invalid nb_drones")
         if nb_drones <= 0:
             raise ParsingError("The value should be positive !")
-        # self.graph.nb_drones = nb_drones
+        self.total_drones = nb_drones
 
     def parse_zone(self, line: str) -> None:
+        is_unlimited = line.lower().startswith("start_hub") or line.lower().startswith("end_hub")
+
         line = line.split(":", 1)
         if len(line) != 2:
             raise ParsingError("Invalid data !")
         data_list = line[1].strip()
         metadata_string = ""
+        data = {}
         if "[" in data_list:
             if not data_list.endswith("]"):
                 raise ParsingError("Metadata most be closed with ']'!")
@@ -78,7 +83,6 @@ class Parser:
             base_data, meta_part = data_list.split("[", 1)
             metadata_string = meta_part.replace("]", "").strip()
             data = self.valid_metadata_hub(metadata_string)
-            print(data)
         else:
             base_data = data_list
 
@@ -95,6 +99,11 @@ class Parser:
         X, Y = self.valid_xy(base_elements[1], base_elements[2])
 
         self.zone_names.add(name)
+        if is_unlimited:
+            final_max_drones = self.total_drones 
+        else:
+            final_max_drones = data.get("max_drones", 1)
+        
 
     def parse_connection(self, line: str) -> None:
         data = 1
@@ -167,7 +176,66 @@ class Parser:
         return X, Y
 
     def valid_metadata_hub(self, metadata: str) -> Dict[str, str | int]:
-        print(metadata)
+        metadata_allowed = ["zone", "color", "max_drones"]
+        types_allowed = ["normal", "blocked", "restricted", "priority"]
+        parsed_data: Dict[str, str | int] = {}
+        color_code = {
+                "green": "#008000", "red": "#FF0000", "purple": "#800080",
+                "black": "#000000", "brown": "#A52A2A", "orange": "#FFA500",
+                "maroon": "#800000", "gold": "#FFD700", "darkred": "#8B0000",
+                "violet": "#EE82EE", "crimson": "#DC143C", "rainbow": "#FF00FF",
+                "blue": "#0000FF", "yellow": "#FFFF00", "cyan": "#00FFFF",
+                "lime": "#00FF00", "magenta": "#FF00FF", "white": "#FFFFFF",
+                "gray": "#808080", "silver": "#C0C0C0", "pink": "#FFC0CB",
+                "teal": "#008080", "navy": "#000080", "olive": "#808000",
+                "coral": "#FF7F50", "salmon": "#FA8072", "khaki": "#F0E68C",
+                "plum": "#DDA0DD", "indigo": "#4B0082", "turquoise": "#40E0D0",
+                "azure": "#F0FFFF", "chocolate": "#D2691E", "tomato": "#FF6347",
+                "orchid": "#DA70D6", "slate": "#708090", "beige": "#F5F5DC",
+                "mint": "#98FF98", "lavender": "#E6E6FA", "peach": "#FFDAB9"
+            }
+
+        if not metadata:
+            return {}
+
+        items = metadata.split()
+        for item in items:
+            if not "=" in item:
+                raise ParsingError(f"Invalid data: missing = in {item}")
+
+            detail, value = item.split("=", 1)
+
+            if not detail in metadata_allowed:
+                raise ParsingError("There is no metadata allowed !")
+
+            if detail == "zone":
+                if value not in types_allowed:
+                    raise ParsingError("Invalid metadata: the type not allowed !")
+                parsed_data[detail] = value
+
+            elif detail == "color":
+                if not value:
+                    raise ParsingError("Invalid metadata: color value cannot be empty!")
+                safe_color_name = value.lower()
+                if safe_color_name in color_code:
+                    hex_value = color_code[safe_color_name]
+                else:
+                    all_hex_colors = list(color_code.values())
+                    hex_value = random.choice(all_hex_colors)
+                parsed_data[detail] = hex_value
+
+            elif detail == "max_drones":
+                try:
+                    max_drones = int(value)
+                except ValueError:
+                    raise ParsingError("invalid metadata: max_drone most be an integer !")
+                if max_drones <= 0:
+                    raise ParsingError("Invalid metadata: max_drone most be positive !")
+                parsed_data[detail] = max_drones
+
+        return parsed_data
+                
+                
 
     def valid_metadata_connection(self, metadata: str) -> int:
         if not metadata:
