@@ -1,8 +1,10 @@
 from graph import Graph
 from typing import Tuple, Dict
 
+
 class ParsingError(Exception):
     pass
+
 
 class Parser:
     def __init__(self, file_name: str):
@@ -61,7 +63,7 @@ class Parser:
             raise ParsingError("Invalid nb_drones")
         if nb_drones <= 0:
             raise ParsingError("The value should be positive !")
-        # self.graph.nb_drones = nb_drones		
+        # self.graph.nb_drones = nb_drones
 
     def parse_zone(self, line: str) -> None:
         line = line.split(":", 1)
@@ -75,21 +77,24 @@ class Parser:
 
             base_data, meta_part = data_list.split("[", 1)
             metadata_string = meta_part.replace("]", "").strip()
+            data = self.valid_metadata_hub(metadata_string)
+            print(data)
         else:
             base_data = data_list
 
         base_elements = base_data.split()
         if len(base_elements) != 3:
-            raise ParsingError(f"Expected <name> <x> <y>, got: {base_elements}")
+            raise ParsingError(
+                f"Expected <name> <x> <y>, got: {base_elements}"
+                )
 
         name = base_elements[0]
         t = self.valid_name(name)
-        if t == False:
+        if not t:
             raise ParsingError(f"Dashes are forbidden in zone names: '{name}'")
         X, Y = self.valid_xy(base_elements[1], base_elements[2])
 
         self.zone_names.add(name)
-
 
     def parse_connection(self, line: str) -> None:
         data = 1
@@ -111,31 +116,42 @@ class Parser:
         base_elements = base_data.split("-", 1)
 
         if len(base_elements) != 2:
-            raise ParsingError(f"Invalid connection format: expected <name1>-<name2>, got '{base_elements}'")
+            raise ParsingError(
+                "Invalid connection format: expected <name1>-<name2>,"
+                f" got '{base_elements}'"
+                )
 
         name1 = base_elements[0].strip()
         name2 = base_elements[1].strip()
         zone1 = self.valid_name(name1)
         zone2 = self.valid_name(name2)
 
-        if zone1 == False or zone2 == False:
-            raise ParsingError(f"Dashes are forbidden in zone names !")
+        if not zone1 or not zone2:
+            raise ParsingError(
+                "Dashes are forbidden in zone names !"
+                )
 
         if name1 not in self.zone_names:
-            raise ParsingError(f"Connection error: Zone '{name1}' does not exist!")
+            raise ParsingError(
+                f"Connection error: Zone '{name1}' does not exist!"
+                )
         if name2 not in self.zone_names:
-            raise ParsingError(f"Connection error: Zone '{name2}' does not exist!")
+            raise ParsingError(
+                f"Connection error: Zone '{name2}' does not exist!"
+                )
         if name1 == name2:
-            raise ParsingError(f"Connection error: Cannot connect zone '{name1}' to itself!")
+            raise ParsingError(
+                f"Connection error: Cannot connect zone '{name1}' to itself!"
+                )
 
         connection_pair = frozenset([name1, name2])
 
         if connection_pair in self.seen_connections:
-            raise ParsingError(f"Duplicate connection detected between {name1} and {name2}!")
+            raise ParsingError(
+                f"Duplicate connection detected between {name1} and {name2}!"
+                )
 
         self.seen_connections.add(connection_pair)
-
-        print(data)
 
     def valid_name(self, name: str) -> bool:
         if "-" in name:
@@ -149,26 +165,39 @@ class Parser:
         except ValueError:
             raise ParsingError("Invalid Coordinates !")
         return X, Y
-	
+
     def valid_metadata_hub(self, metadata: str) -> Dict[str, str | int]:
-        pass
+        print(metadata)
 
     def valid_metadata_connection(self, metadata: str) -> int:
         if not metadata:
             raise ParsingError("Metadata is empty !")
+
         data = metadata.split(" ", 1)
-
         if len(data) > 1:
-            raise ParsingError("Invalid metadata: most be contain just max_link_capacity !")
-
+            raise ParsingError(
+                "Invalid metadata: most be contain just max_link_capacity !"
+                )
         value = data[0].split("=", 1)
         if value[0] == "max_link_capacity":
+            if len(value) != 2:
+                raise ParsingError(
+                    f"Invalid metadata format: '{data[0]}' "
+                    "is missing an '=' and a value!"
+                    )
             try:
                 max_capacity = int(value[1])
             except ValueError:
-                raise ParsingError("Invalid metadata: max must be integer !")
+                raise ParsingError(
+                    "Invalid metadata: max must be integer !"
+                    )
             if max_capacity < 1:
-                raise ParsingError("Invalid metadata: max must be positive !")
+                raise ParsingError(
+                    "Invalid metadata: max must be positive !"
+                    )
         else:
-            raise ParsingError("Invalid metadata: 'max_link_capacity' not exist")       
+            raise ParsingError(
+                "Invalid metadata: 'max_link_capacity' not exist"
+                )
+
         return max_capacity
