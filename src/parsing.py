@@ -51,6 +51,10 @@ class Parser:
                 end_zone_exist = True
 
             elif lower_line.startswith("hub:"):
+                if not start_zone_exist:
+                    raise ParsingError("A 'start_hub' must be defined before regular hubs !")
+                if not end_zone_exist:
+                    raise ParsingError("An 'end_hub' must be defined before regular hubs !")
                 self.parse_zone(line)
 
             elif lower_line.startswith("connection:"):
