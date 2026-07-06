@@ -71,7 +71,8 @@ class Parser:
         self.total_drones = nb_drones
 
     def parse_zone(self, line: str) -> None:
-        is_unlimited = line.lower().startswith("start_hub") or line.lower().startswith("end_hub")
+        is_unlimited = (line.lower().startswith("start_hub")
+                        or line.lower().startswith("end_hub"))
         is_start = line.lower().startswith("start_hub")
         is_end = line.lower().endswith("end_hub")
 
@@ -105,7 +106,7 @@ class Parser:
 
         self.zone_names.add(name)
         if is_unlimited:
-            final_max_drones = self.total_drones 
+            final_max_drones = self.total_drones
         else:
             final_max_drones = data.get("max_drones", 1)
 
@@ -120,7 +121,6 @@ class Parser:
                 self.graph.start_zone = new_zone
             elif is_end:
                 self.graph.end_zone = new_zone
-        
 
     def parse_connection(self, line: str) -> None:
         data = 1
@@ -199,42 +199,62 @@ class Parser:
         types_allowed = ["normal", "blocked", "restricted", "priority"]
         parsed_data: Dict[str, str | int] = {}
         color_code = {
-                "green": "#008000", "red": "#FF0000", "purple": "#800080",
-                "black": "#000000", "brown": "#A52A2A", "orange": "#FFA500",
-                "maroon": "#800000", "gold": "#FFD700", "darkred": "#8B0000",
-                "violet": "#EE82EE", "crimson": "#DC143C", "rainbow": "#FF00FF",
-                "blue": "#0000FF", "yellow": "#FFFF00", "cyan": "#00FFFF",
-                "lime": "#00FF00", "magenta": "#FF00FF", "white": "#FFFFFF",
-                "gray": "#808080", "silver": "#C0C0C0", "pink": "#FFC0CB",
-                "teal": "#008080", "navy": "#000080", "olive": "#808000",
-                "coral": "#FF7F50", "salmon": "#FA8072", "khaki": "#F0E68C",
-                "plum": "#DDA0DD", "indigo": "#4B0082", "turquoise": "#40E0D0",
-                "azure": "#F0FFFF", "chocolate": "#D2691E", "tomato": "#FF6347",
-                "orchid": "#DA70D6", "slate": "#708090", "beige": "#F5F5DC",
-                "mint": "#98FF98", "lavender": "#E6E6FA", "peach": "#FFDAB9"
+                "green": "#008000", "red": "#FF0000",
+                "purple": "#800080",
+                "black": "#000000", "brown": "#A52A2A",
+                "orange": "#FFA500",
+                "maroon": "#800000", "gold": "#FFD700",
+                "darkred": "#8B0000",
+                "violet": "#EE82EE", "crimson": "#DC143C",
+                "rainbow": "#FF00FF",
+                "blue": "#0000FF", "yellow": "#FFFF00",
+                "cyan": "#00FFFF",
+                "lime": "#00FF00", "magenta": "#FF00FF",
+                "white": "#FFFFFF",
+                "gray": "#808080", "silver": "#C0C0C0",
+                "pink": "#FFC0CB",
+                "teal": "#008080", "navy": "#000080",
+                "olive": "#808000",
+                "coral": "#FF7F50", "salmon": "#FA8072",
+                "khaki": "#F0E68C",
+                "plum": "#DDA0DD", "indigo": "#4B0082",
+                "turquoise": "#40E0D0",
+                "azure": "#F0FFFF", "chocolate": "#D2691E",
+                "tomato": "#FF6347",
+                "orchid": "#DA70D6", "slate": "#708090",
+                "beige": "#F5F5DC",
+                "mint": "#98FF98", "lavender": "#E6E6FA",
+                "peach": "#FFDAB9"
             }
 
         if not metadata:
             return {}
 
+        while " =" in metadata or "= " in metadata:
+            metadata = metadata.replace(" =", "=").replace("= ", "=")
+
         items = metadata.split()
         for item in items:
-            if not "=" in item:
+            if "=" not in item:
                 raise ParsingError(f"Invalid data: missing = in {item}")
 
             detail, value = item.split("=", 1)
 
-            if not detail in metadata_allowed:
+            if detail not in metadata_allowed:
                 raise ParsingError("There is no metadata allowed !")
 
             if detail == "zone":
                 if value not in types_allowed:
-                    raise ParsingError("Invalid metadata: the type not allowed !")
+                    raise ParsingError(
+                        "Invalid metadata: the type not allowed !"
+                        )
                 parsed_data[detail] = value
 
             elif detail == "color":
                 if not value:
-                    raise ParsingError("Invalid metadata: color value cannot be empty!")
+                    raise ParsingError(
+                        "Invalid metadata: color value cannot be empty!"
+                        )
                 safe_color_name = value.lower()
                 if safe_color_name in color_code:
                     hex_value = color_code[safe_color_name]
@@ -247,18 +267,23 @@ class Parser:
                 try:
                     max_drones = int(value)
                 except ValueError:
-                    raise ParsingError("invalid metadata: max_drone most be an integer !")
+                    raise ParsingError(
+                        "invalid metadata: max_drone most be an integer !"
+                        )
                 if max_drones <= 0:
-                    raise ParsingError("Invalid metadata: max_drone most be positive !")
+                    raise ParsingError(
+                        "Invalid metadata: max_drone most be positive !"
+                        )
                 parsed_data[detail] = max_drones
 
         return parsed_data
-                
-                
 
     def valid_metadata_connection(self, metadata: str) -> int:
         if not metadata:
             raise ParsingError("Metadata is empty !")
+
+        while " =" in metadata or "= " in metadata:
+            metadata = metadata.replace(" =", "=").replace("= ", "=")
 
         data = metadata.split(" ", 1)
         if len(data) > 1:
