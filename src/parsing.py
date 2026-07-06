@@ -26,11 +26,13 @@ class Parser:
         nb_drone_exist = False
         end_zone_exist = False
         start_zone_exist = False
+        connections_to_parse = []
 
         for line in lines:
             line = line.strip()
             if not line or line.startswith("#"):
                 continue
+
             lower_line = line.lower()
             if lower_line.startswith("nb_drones:"):
                 if nb_drone_exist:
@@ -53,21 +55,22 @@ class Parser:
             elif lower_line.startswith("hub:"):
                 if not start_zone_exist:
                     raise ParsingError("A 'start_hub' must be defined before regular hubs !")
-                if not end_zone_exist:
-                    raise ParsingError("An 'end_hub' must be defined before regular hubs !")
+                if end_zone_exist:
+                    raise ParsingError("An 'end_hub' must be defined after regular hubs !")
                 self.parse_zone(line)
 
             elif lower_line.startswith("connection:"):
-                self.parse_connection(line)
+                connections_to_parse.append(line)
             else:
                 raise ParsingError("There is no data !")
 
         if not nb_drone_exist:
             raise ParsingError("The map is missing 'nb_drones' !")
-        if not start_zone_exist:
-            raise ParsingError("The map is missing a 'start_hub' !")
         if not end_zone_exist:
             raise ParsingError("The map is missing an 'end_hub' !")
+
+        for conn_line in connections_to_parse:
+            self.parse_connection(conn_line)
 
     def parse_nb_drones(self, line: str) -> None:
         line = line.split(":")
