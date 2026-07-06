@@ -42,71 +42,64 @@ class Parser:
         if not lines:
             raise ParsingError("The file is empty !")
 
-        for line_num, original_line in enumerate(lines, start=1):
-            try:
-                line = original_line.split("#", 1)[0].strip()
+        for line in lines:
 
-                if not line or line.startswith("#"):
-                    continue
+            line = line.split("#", 1)[0].strip()
 
-                lower_line = line.lower()
+            if not line or line.startswith("#"):
+                continue
 
-                if is_first_data_line:
-                    if not lower_line.startswith("nb_drones:"):
-                        raise ParsingError(
-                            "The first valid line in "
-                            "the map must be 'nb_drones:' !"
-                            )
-                    is_first_data_line = False
+            lower_line = line.lower()
 
-                if lower_line.startswith("nb_drones:"):
-                    if nb_drone_exist:
-                        raise ParsingError("nb_drones already exist !")
-                    self.parse_nb_drones(line)
-                    nb_drone_exist = True
+            if is_first_data_line:
+                if not lower_line.startswith("nb_drones:"):
+                    raise ParsingError(
+                        "The first valid line in "
+                        "the map must be 'nb_drones:' !"
+                        )
+                is_first_data_line = False
 
-                elif lower_line.startswith("start_hub:"):
-                    if start_zone_exist:
-                        raise ParsingError("start_hub already exist !")
-                    self.parse_zone(line)
-                    start_zone_exist = True
+            if lower_line.startswith("nb_drones:"):
+                if nb_drone_exist:
+                    raise ParsingError("nb_drones already exist !")
+                self.parse_nb_drones(line)
+                nb_drone_exist = True
 
-                elif lower_line.startswith("end_hub:"):
-                    if end_zone_exist:
-                        raise ParsingError("end_hub already exist !")
-                    self.parse_zone(line)
-                    end_zone_exist = True
+            elif lower_line.startswith("start_hub:"):
+                if start_zone_exist:
+                    raise ParsingError("start_hub already exist !")
+                self.parse_zone(line)
+                start_zone_exist = True
 
-                elif lower_line.startswith("hub:"):
-                    if not start_zone_exist:
-                        raise ParsingError(
-                            "A 'start_hub' must be defined "
-                            "before regular hubs !"
-                            )
-                    if end_zone_exist:
-                        raise ParsingError(
-                            "An 'end_hub' must be defined after regular hubs !"
-                            )
-                    self.parse_zone(line)
+            elif lower_line.startswith("end_hub:"):
+                if end_zone_exist:
+                    raise ParsingError("end_hub already exist !")
+                self.parse_zone(line)
+                end_zone_exist = True
 
-                elif lower_line.startswith("connection:"):
-                    connections_to_parse.append((line_num, line))
-                else:
-                    raise ParsingError("There is no data !")
+            elif lower_line.startswith("hub:"):
+                if not start_zone_exist:
+                    raise ParsingError(
+                        "A 'start_hub' must be defined before regular hubs !"
+                        )
+                if end_zone_exist:
+                    raise ParsingError(
+                        "An 'end_hub' must be defined after regular hubs !"
+                        )
+                self.parse_zone(line)
 
-            except ParsingError as e:
-                raise ParsingError(f"Error on line {line_num}: {e}")
+            elif lower_line.startswith("connection:"):
+                connections_to_parse.append(line)
+            else:
+                raise ParsingError("There is no data !")
 
         if not nb_drone_exist:
             raise ParsingError("The map is missing 'nb_drones' !")
         if not end_zone_exist:
             raise ParsingError("The map is missing an 'end_hub' !")
 
-        for line_num, conn_line in connections_to_parse:
-            try:
-                self.parse_connection(conn_line)
-            except ParsingError as e:
-                raise ParsingError(f"Error on line {line_num}: {e}")
+        for conn_line in connections_to_parse:
+            self.parse_connection(conn_line)
 
     def parse_nb_drones(self, line: str) -> None:
         line = line.split(":")
@@ -410,4 +403,3 @@ class Parser:
                 )
 
         return max_capacity
-
