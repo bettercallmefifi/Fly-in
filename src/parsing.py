@@ -1,4 +1,6 @@
 from graph import Graph
+from connection import Connection
+from zone import Zone
 from typing import Tuple, Dict
 import random
 
@@ -13,6 +15,7 @@ class Parser:
         self.zone_names = set()
         self.seen_connections = set()
         self.total_drones = 0
+        self.graph = Graph()
 
     def parsing(self):
         try:
@@ -69,6 +72,8 @@ class Parser:
 
     def parse_zone(self, line: str) -> None:
         is_unlimited = line.lower().startswith("start_hub") or line.lower().startswith("end_hub")
+        is_start = line.lower().startswith("start_hub")
+        is_end = line.lower().endswith("end_hub")
 
         line = line.split(":", 1)
         if len(line) != 2:
@@ -103,6 +108,18 @@ class Parser:
             final_max_drones = self.total_drones 
         else:
             final_max_drones = data.get("max_drones", 1)
+
+        color = data.get("color", "#FFFFFF")
+        zone_type = data.get("zone", "normal")
+
+        new_zone = Zone(name, X, Y, final_max_drones, color, zone_type)
+        self.graph.add_zone(new_zone)
+
+        if is_unlimited:
+            if is_start:
+                self.graph.start_zone = new_zone
+            elif is_end:
+                self.graph.end_zone = new_zone
         
 
     def parse_connection(self, line: str) -> None:
@@ -161,6 +178,8 @@ class Parser:
                 )
 
         self.seen_connections.add(connection_pair)
+        new_conn = Connection(name1, name2, data)
+        self.graph.add_connection(new_conn)
 
     def valid_name(self, name: str) -> bool:
         if "-" in name:

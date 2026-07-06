@@ -1,20 +1,24 @@
-from dataclasses import dataclass, field
-from enum import Enum
-from typing import List, Dict, Optional
+from drone import Drone
+from typing import List, Dict
 
 
-class ZoneType(Enum):
-    NORMAL = "normal"
-    RESTRICTED = "restricted"
-    BLOCKED = "blocked"
-    PRIORITY = "priority"
-
-
-@dataclass
 class Zone:
-    name: str
-    zone_type: ZoneType
-    max_drones: int
-    x: int
-    y: int
-    color: Optional[str] = None
+    def __init__(
+        self,
+        name: str,
+        x: int,
+        y: int,
+        max_drones: int = 1,
+        color: str = "none",
+        zone_type: str = "normal",
+    ) -> None:
+        self.name = name
+        self.x = x
+        self.y = y
+        self.max_drones = max_drones
+        self.zone_type = zone_type
+        self.color = color
+
+        self.current_drones_inside = 0
+        self.drones: List[Drone] = []
+        self.neighbors: List[Zone] = []

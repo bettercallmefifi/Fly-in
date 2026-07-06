@@ -1,8 +1,7 @@
-from dataclasses import dataclass
 
-
-@dataclass
 class Connection:
-    zone1_name: str
-    zone2_name: str
-    max_link_capacity: int
+	def __init__(self, zone1: str, zone2: str, capacity: int):
+		self.zone1 = zone1
+		self.zone2 = zone2
+		self.capacity = capacity
+		self.drones_on_link = 0
