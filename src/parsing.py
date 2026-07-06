@@ -58,6 +58,13 @@ class Parser:
             else:
                 raise ParsingError("There is no data !")
 
+        if not nb_drone_exist:
+            raise ParsingError("The map is missing 'nb_drones' !")
+        if not start_zone_exist:
+            raise ParsingError("The map is missing a 'start_hub' !")
+        if not end_zone_exist:
+            raise ParsingError("The map is missing an 'end_hub' !")
+
     def parse_nb_drones(self, line: str) -> None:
         line = line.split(":")
         if len(line) != 2:
