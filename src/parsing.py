@@ -14,6 +14,7 @@ class Parser:
         self.file_name = file_name
         self.zone_names = set()
         self.seen_connections = set()
+        self.positions = set()
         self.total_drones = 0
         self.graph = Graph()
 
@@ -23,69 +24,103 @@ class Parser:
                 lines = f.readlines()
         except FileNotFoundError:
             raise ParsingError("Choose an existing file !")
+        except PermissionError:
+            raise ParsingError(
+                "Permission denied: Cannot read the file !"
+                )
+        except IsADirectoryError:
+            raise ParsingError(
+                "The provided path is a directory, not a file !"
+                )
+
         nb_drone_exist = False
         end_zone_exist = False
         start_zone_exist = False
+        is_first_data_line = True
         connections_to_parse = []
 
-        for line in lines:
-            line = line.strip()
-            if not line or line.startswith("#"):
-                continue
+        if not lines:
+            raise ParsingError("The file is empty !")
 
-            lower_line = line.lower()
-            if lower_line.startswith("nb_drones:"):
-                if nb_drone_exist:
-                    raise ParsingError("nb_drones already exist !")
-                self.parse_nb_drones(line)
-                nb_drone_exist = True
+        for line_num, original_line in enumerate(lines, start=1):
+            try:
+                line = original_line.split("#", 1)[0].strip()
 
-            elif lower_line.startswith("start_hub:"):
-                if start_zone_exist:
-                    raise ParsingError("start_hub already exist !")
-                self.parse_zone(line)
-                start_zone_exist = True
+                if not line or line.startswith("#"):
+                    continue
 
-            elif lower_line.startswith("end_hub:"):
-                if end_zone_exist:
-                    raise ParsingError("end_hub already exist !")
-                self.parse_zone(line)
-                end_zone_exist = True
+                lower_line = line.lower()
 
-            elif lower_line.startswith("hub:"):
-                if not start_zone_exist:
-                    raise ParsingError(
-                        "A 'start_hub' must be defined before regular hubs !"
-                        )
-                if end_zone_exist:
-                    raise ParsingError(
-                        "An 'end_hub' must be defined after regular hubs !"
-                        )
-                self.parse_zone(line)
+                if is_first_data_line:
+                    if not lower_line.startswith("nb_drones:"):
+                        raise ParsingError(
+                            "The first valid line in "
+                            "the map must be 'nb_drones:' !"
+                            )
+                    is_first_data_line = False
 
-            elif lower_line.startswith("connection:"):
-                connections_to_parse.append(line)
-            else:
-                raise ParsingError("There is no data !")
+                if lower_line.startswith("nb_drones:"):
+                    if nb_drone_exist:
+                        raise ParsingError("nb_drones already exist !")
+                    self.parse_nb_drones(line)
+                    nb_drone_exist = True
+
+                elif lower_line.startswith("start_hub:"):
+                    if start_zone_exist:
+                        raise ParsingError("start_hub already exist !")
+                    self.parse_zone(line)
+                    start_zone_exist = True
+
+                elif lower_line.startswith("end_hub:"):
+                    if end_zone_exist:
+                        raise ParsingError("end_hub already exist !")
+                    self.parse_zone(line)
+                    end_zone_exist = True
+
+                elif lower_line.startswith("hub:"):
+                    if not start_zone_exist:
+                        raise ParsingError(
+                            "A 'start_hub' must be defined "
+                            "before regular hubs !"
+                            )
+                    if end_zone_exist:
+                        raise ParsingError(
+                            "An 'end_hub' must be defined after regular hubs !"
+                            )
+                    self.parse_zone(line)
+
+                elif lower_line.startswith("connection:"):
+                    connections_to_parse.append((line_num, line))
+                else:
+                    raise ParsingError("There is no data !")
+
+            except ParsingError as e:
+                raise ParsingError(f"Error on line {line_num}: {e}")
 
         if not nb_drone_exist:
             raise ParsingError("The map is missing 'nb_drones' !")
         if not end_zone_exist:
             raise ParsingError("The map is missing an 'end_hub' !")
 
-        for conn_line in connections_to_parse:
-            self.parse_connection(conn_line)
+        for line_num, conn_line in connections_to_parse:
+            try:
+                self.parse_connection(conn_line)
+            except ParsingError as e:
+                raise ParsingError(f"Error on line {line_num}: {e}")
 
     def parse_nb_drones(self, line: str) -> None:
         line = line.split(":")
+
         if len(line) != 2:
             raise ParsingError("Invalid data !")
         try:
             nb_drones = int(line[1].strip())
         except ValueError:
             raise ParsingError("Invalid nb_drones")
+
         if nb_drones <= 0:
             raise ParsingError("The value should be positive !")
+
         self.total_drones = nb_drones
 
     def parse_zone(self, line: str) -> None:
@@ -95,22 +130,29 @@ class Parser:
         is_end = line.lower().endswith("end_hub")
 
         line = line.split(":", 1)
+
         if len(line) != 2:
             raise ParsingError("Invalid data !")
+
         data_list = line[1].strip()
         metadata_string = ""
         data = {}
-        if "[" in data_list:
-            if not data_list.endswith("]"):
-                raise ParsingError("Metadata most be closed with ']'!")
 
-            base_data, meta_part = data_list.split("[", 1)
-            metadata_string = meta_part.replace("]", "").strip()
+        if data_list.endswith("]"):
+
+            last_bracket_idx = data_list.rfind("[")
+
+            if last_bracket_idx == -1:
+                raise ParsingError("Metadata most be start with '['!")
+
+            base_data = data_list[:last_bracket_idx].strip()
+            metadata_string = data_list[last_bracket_idx + 1:-1].strip()
             data = self.valid_metadata_hub(metadata_string)
         else:
             base_data = data_list
 
         base_elements = base_data.split()
+
         if len(base_elements) != 3:
             raise ParsingError(
                 f"Expected <name> <x> <y>, got: {base_elements}"
@@ -118,11 +160,28 @@ class Parser:
 
         name = base_elements[0]
         t = self.valid_name(name)
+
+        if name in self.zone_names:
+            raise ParsingError(
+                f"Duplicate zone error: The name '{name}' is already used !"
+                )
+
         if not t:
-            raise ParsingError(f"Dashes are forbidden in zone names: '{name}'")
-        X, Y = self.valid_xy(base_elements[1], base_elements[2])
+            raise ParsingError(
+                f"Dashes are forbidden in zone names: '{name}'"
+                )
 
         self.zone_names.add(name)
+
+        X, Y = self.valid_xy(base_elements[1], base_elements[2])
+
+        if (X, Y) in self.positions:
+            raise ParsingError(
+                f"Duplicate position error: Coordinates ({X}, {Y})"
+                " are already used by another zone !"
+            )
+        self.positions.add((X, Y))
+
         if is_unlimited:
             final_max_drones = self.total_drones
         else:
@@ -143,20 +202,28 @@ class Parser:
     def parse_connection(self, line: str) -> None:
         data = 1
         line = line.split(":", 1)
+
         if len(line) != 2:
             raise ParsingError("Invalid data !")
+
         data_list = line[1].strip()
         metadata_string = ""
-        if "[" in data_list:
-            if not data_list.endswith("]"):
-                raise ParsingError("Metadata most be closed with ']'!")
 
-            base_data, meta_part = data_list.split("[", 1)
-            metadata_string = meta_part.replace("]", "").strip()
-            data = self.valid_metadata_connection(metadata_string)
+        if data_list.endswith("]"):
+            last_bracket_idx = data_list.rfind("[")
 
+            if last_bracket_idx == -1:
+                raise ParsingError("Metadata most start with '['!")
+
+            if "=" in data_list[last_bracket_idx:]:
+                base_data = data_list[:last_bracket_idx].strip()
+                metadata_string = data_list[last_bracket_idx + 1:-1].strip()
+                data = self.valid_metadata_connection(metadata_string)
+            else:
+                base_data = data_list
         else:
             base_data = data_list
+
         base_elements = base_data.split("-", 1)
 
         if len(base_elements) != 2:
@@ -248,8 +315,10 @@ class Parser:
         if not metadata:
             return {}
 
-        while " =" in metadata or "= " in metadata:
-            metadata = metadata.replace(" =", "=").replace("= ", "=")
+        if " =" in metadata or "= " in metadata:
+            raise ParsingError(
+                "Invalid metadata: spaces around '=' are strictly forbidden !"
+                )
 
         items = metadata.split()
         for item in items:
@@ -257,6 +326,12 @@ class Parser:
                 raise ParsingError(f"Invalid data: missing = in {item}")
 
             detail, value = item.split("=", 1)
+
+            if detail in parsed_data:
+                raise ParsingError(
+                    f"Duplicate metadata error: '{detail}' is "
+                    "defined more than once !"
+                    )
 
             if detail not in metadata_allowed:
                 raise ParsingError("There is no metadata allowed !")
@@ -274,6 +349,7 @@ class Parser:
                         "Invalid metadata: color value cannot be empty!"
                         )
                 safe_color_name = value.lower()
+
                 if safe_color_name in color_code:
                     hex_value = color_code[safe_color_name]
                 else:
@@ -300,14 +376,17 @@ class Parser:
         if not metadata:
             raise ParsingError("Metadata is empty !")
 
-        while " =" in metadata or "= " in metadata:
-            metadata = metadata.replace(" =", "=").replace("= ", "=")
+        if " =" in metadata or "= " in metadata:
+            raise ParsingError(
+                "Invalid metadata: spaces around '=' are strictly forbidden !"
+                )
 
         data = metadata.split(" ", 1)
         if len(data) > 1:
             raise ParsingError(
                 "Invalid metadata: most be contain just max_link_capacity !"
                 )
+
         value = data[0].split("=", 1)
         if value[0] == "max_link_capacity":
             if len(value) != 2:
