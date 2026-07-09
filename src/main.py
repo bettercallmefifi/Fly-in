@@ -1,7 +1,6 @@
 import sys
 from parsing import Parser, ParsingError
 
-
 def valid_arg() -> str:
     if len(sys.argv) != 2:
         print("Invalid arguments")
@@ -14,21 +13,32 @@ def main():
     parser = Parser(file_name)
 
     try:
-        # 1. Kan-lanciou l'parsing howa lowel bach y3mer l'Graph
         parser.parsing()
 
-        # 2. Kan-jebdou l'graph (bla a9was 7it attribut machi methode)
         graph = parser.graph
 
-        # 3. N-printiw l'ma3loumat bach n-t2ekdou anaho kolchi dkhl mzyan
-        print("================ Natija dyal l'Graph ================")
+        print("\n================ Graph ========")
         print(f"Total Drones : {parser.total_drones}")
         print(f"Les Zones    : {len(graph.zones)}")
         print(f"Connections  : {len(graph.connections)}")
-        print("=====================================================")
+        print(f"Start Zone   : {graph.start_zone.name}")
+        print(f"End Zone     : {graph.end_zone.name}")
+        print("=======================================================")
+
+        print("\n================ Natija dyal Pathfinding ==============")
+        best_path = graph.calculate_drone_path()
+
+        if best_path:
+            # Kan-jbdou smyat dyal l'zones mn l'objects w kan-lasqohom b ' -> '
+            path_names = [zone.name for zone in best_path]
+            print(f"A9sar tri9 hiya: {' -> '.join(path_names)}")
+            print(f"3adad l'Ma7attat f t-tri9: {len(best_path)}")
+        else:
+            print("Makaynach 7ta tri9 bin Start w End f had l'kharita!")
+        print("=======================================================")
 
     except ParsingError as e:
-        print(f"Error: {e}")
+        print(f"{e}")
 
 
 if __name__ == "__main__":

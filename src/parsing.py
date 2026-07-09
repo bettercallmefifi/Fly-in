@@ -127,7 +127,7 @@ class Parser:
         is_unlimited = (line.lower().startswith("start_hub")
                         or line.lower().startswith("end_hub"))
         is_start = line.lower().startswith("start_hub")
-        is_end = line.lower().endswith("end_hub")
+        is_end = line.lower().startswith("end_hub")
 
         line = line.split(":", 1)
 
@@ -410,4 +410,3 @@ class Parser:
                 )
 
         return max_capacity
-

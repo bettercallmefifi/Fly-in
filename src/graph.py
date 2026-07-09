@@ -2,19 +2,42 @@ from zone import Zone
 from connection import Connection
 from drone import Drone
 from typing import Dict, List
+from pathfinding import Pathfinding
 
 
 class Graph:
     def __init__(self):
-        self.nb_drones = 0
-        self.zones: Dict[str, Zone] = {}
-        self.start_zone: Zone | None = None
-        self.end_zone: Zone | None = None
-        self.connections: List[Connection] = []
-        self.drones: List[Drone] = []
+        self.zones = {}
+        self.connections = []
+        self.start_zone = None
+        self.end_zone = None
+        self.adjacency_list = {}
 
-    def add_zone(self, new_zone: Zone):
-        self.zones[new_zone.name] = new_zone
+    def add_zone(self, zone):
+        self.zones[zone.name] = zone
+        self.adjacency_list[zone] = []
 
-    def add_connection(self, new_connection: Connection):
-        self.connections.append(new_connection)
+    def add_connection(self, connection):
+        self.connections.append(connection)
+
+        z1 = self.zones[connection.zone1]
+        z2 = self.zones[connection.zone2]
+        
+        # N-rbtohom mn jouj jwayh
+        self.adjacency_list[z1].append(z2)
+        self.adjacency_list[z2].append(z1)
+
+    def calculate_drone_path(self):
+
+        if not self.start_zone or not self.end_zone:
+            return None
+            
+        finder = Pathfinding()
+        
+        best_path = finder.find_shortest_path(
+            self.start_zone, 
+            self.end_zone, 
+            self.adjacency_list
+        )
+        
+        return best_path
