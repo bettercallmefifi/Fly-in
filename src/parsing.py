@@ -145,6 +145,12 @@ class Parser:
             if last_bracket_idx == -1:
                 raise ParsingError("Metadata most be start with '['!")
 
+            raw_metadata = data_list[last_bracket_idx + 1:-1]
+            if raw_metadata.startswith(" ") or raw_metadata.endswith(" "):
+                raise ParsingError(
+                    "Invalid metadata: spaces just inside the brackets are strictly forbidden !"
+                    )
+
             base_data = data_list[:last_bracket_idx].strip()
             metadata_string = data_list[last_bracket_idx + 1:-1].strip()
             data = self.valid_metadata_hub(metadata_string)
@@ -215,14 +221,18 @@ class Parser:
             if last_bracket_idx == -1:
                 raise ParsingError("Metadata most start with '['!")
 
-            if "=" in data_list[last_bracket_idx:]:
-                base_data = data_list[:last_bracket_idx].strip()
-                metadata_string = data_list[last_bracket_idx + 1:-1].strip()
-                data = self.valid_metadata_connection(metadata_string)
-            else:
-                base_data = data_list
+            raw_metadata = data_list[last_bracket_idx + 1:-1]
+            if raw_metadata.startswith(" ") or raw_metadata.endswith(" "):
+                raise ParsingError(
+                    "Invalid metadata: spaces just inside the brackets are strictly forbidden !"
+                    )
+
+            base_data = data_list[:last_bracket_idx].strip()
+            metadata_string = data_list[last_bracket_idx + 1:-1].strip()
+            data = self.valid_metadata_connection(metadata_string)
         else:
             base_data = data_list
+
 
         base_elements = base_data.split("-", 1)
 
@@ -231,7 +241,6 @@ class Parser:
                 "Invalid connection format: expected <name1>-<name2>,"
                 f" got '{base_elements}'"
                 )
-
         name1 = base_elements[0].strip()
         name2 = base_elements[1].strip()
         zone1 = self.valid_name(name1)
@@ -313,7 +322,7 @@ class Parser:
             }
 
         if not metadata:
-            return {}
+            raise ParsingError("Metadata is empty !")
 
         if " =" in metadata or "= " in metadata:
             raise ParsingError(

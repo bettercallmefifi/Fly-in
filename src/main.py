@@ -24,14 +24,7 @@ def main():
         print(f"Start Zone   : {graph.start_zone.name}")
         print(f"End Zone     : {graph.end_zone.name}")
         print("=======================================================")
-        print("\n================ Adjacency List (L'Jiran) ==============")
-        for zone_obj, neighbors_list in graph.adjacency_list.items():
-            # Kan-jbdou s-smyat dyal l-jiran mn l-objets dyalhom
-            neighbor_names = [n.name for n in neighbors_list]
-            
-            # Kan-printiw s-smia dyal l-ma7atta w l-jiran dyalha
-            print(f"[{zone_obj.name}] mlasqa m3a -> {neighbor_names}")
-        print("=======================================================")
+
         print("\n================ Natija dyal Pathfinding ==============")
         best_path = graph.calculate_drone_path()
 
@@ -50,3 +43,65 @@ def main():
 
 if __name__ == "__main__":
     main()
+'''import sys
+from parsing import Parser, ParsingError
+
+def main():
+    # 1. Kan-t2akdou blli dkhlna smyat l-fichier f command line (mthal: make run MAP=...)
+    if len(sys.argv) < 2:
+        print("❌ Error: Khassk t-3ti smyat l-fichier dyal l-map!")
+        print("Mthal: python3 src/main.py maps/easy/01_linear_path.txt")
+        sys.exit(1)
+
+    file_name = sys.argv[1]
+
+    try:
+        # 2. Kan-kreyiw l'Parser w kan-lanciwh
+        parser = Parser(file_name)
+        parser.parsing()
+
+        # Ila wselna hna, ya3ni l-parsing daz b naja7 bla machakil
+        print(f"✅ Parsing daz mzyan l-fichier: {file_name}")
+        print(f"🚁 Total Drones: {parser.total_drones}")
+        print("=" * 60)
+
+        # 3. N-printiw ZONES
+        print("\n📍 ZONES L-MAWJOUDIN:")
+        
+        # Kan-ftardou blli 'parser.graph.zones' fiha l-ma7attat (Dictionary wla List)
+        # Ila kant Dictionary {smiya: Zone_Object}, 3yyt liha b .values():
+        if hasattr(parser.graph, 'zones'):
+            # Check ila kant dict wla list
+            zones_list = parser.graph.zones.values() if isinstance(parser.graph.zones, dict) else parser.graph.zones
+            
+            for z in zones_list:
+                print(f" - M7tta: [{z.name}] | X:{z.x} Y:{z.y} | Max Drones: {z.max_drones} | Color: {z.color} | Type: {z.zone_type}")
+        else:
+            print(" ⚠️ L-Classe Graph dyalek ma-fihach l-attribut 'zones'.")
+
+        print("\n" + "=" * 60)
+
+        # 4. N-printiw CONNECTIONS
+        print("\n🔗 CONNECTIONS (T-TORQAN):")
+        
+        if hasattr(parser.graph, 'connections'):
+            for c in parser.graph.connections:
+                # Kan-ftardou blli l-Connection 3ndha name1, name2 w l-capacity
+                # Ila knti msmihom f l-classe Connection b smia khra (mthal: c.zone1 w c.zone2), beddelhom hna
+                n1 = getattr(c, 'name1', getattr(c, 'zone1', 'Unknown'))
+                n2 = getattr(c, 'name2', getattr(c, 'zone2', 'Unknown'))
+                cap = getattr(c, 'data', getattr(c, 'capacity', getattr(c, 'max_link_capacity', 1)))
+                
+                print(f" - Triq bin: [{n1}] <---> [{n2}] | Max Capacity: {cap}")
+        else:
+            print(" ⚠️ L-Classe Graph dyalek ma-fihach l-attribut 'connections'.")
+            
+        print("\n" + "=" * 60)
+
+    except ParsingError as e:
+        # Ila lqa chi mouchkil f l-parsing (b7al Metadata empty), ghadi y-tbe3 lik l-error hna
+        print(f"❌ Error f l'Parsing:\n{e}")
+        sys.exit(1)
+
+if __name__ == "__main__":
+    main()'''
