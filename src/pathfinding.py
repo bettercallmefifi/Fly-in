@@ -31,7 +31,7 @@ class Pathfinding:
         while pq:
             current_cost, _, current_zone = heapq.heappop(pq)
             if current_zone == end_zone:
-                return self._build_path(previous_nodes, end_zone)
+                return self.build_path(previous_nodes, end_zone)
 
             if current_zone in visited:
                 continue
@@ -55,7 +55,7 @@ class Pathfinding:
                     heapq.heappush(pq, (new_cost, neighbor.name, neighbor))
         return None
 
-    def _build_path(self,
+    def build_path(self,
                 previous_nodes: Dict[Any, Any],
                 end_zone: Any
                 )-> List[Any]:
