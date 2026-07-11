@@ -24,7 +24,14 @@ def main():
         print(f"Start Zone   : {graph.start_zone.name}")
         print(f"End Zone     : {graph.end_zone.name}")
         print("=======================================================")
-
+        print("\n================ Adjacency List (L'Jiran) ==============")
+        for zone_obj, neighbors_list in graph.adjacency_list.items():
+            # Kan-jbdou s-smyat dyal l-jiran mn l-objets dyalhom
+            neighbor_names = [n.name for n in neighbors_list]
+            
+            # Kan-printiw s-smia dyal l-ma7atta w l-jiran dyalha
+            print(f"[{zone_obj.name}] mlasqa m3a -> {neighbor_names}")
+        print("=======================================================")
         print("\n================ Natija dyal Pathfinding ==============")
         best_path = graph.calculate_drone_path()
 
