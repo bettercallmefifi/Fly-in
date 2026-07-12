@@ -1,7 +1,3 @@
-from zone import Zone
-from connection import Connection
-from drone import Drone
-from typing import Dict, List
 from pathfinding import Pathfinding
 
 
@@ -22,7 +18,6 @@ class Graph:
 
         z1 = self.zones[connection.zone1]
         z2 = self.zones[connection.zone2]
-        
         # N-rbtohom mn jouj jwayh
         self.adjacency_list[z1].append(z2)
         self.adjacency_list[z2].append(z1)
@@ -31,13 +26,13 @@ class Graph:
 
         if not self.start_zone or not self.end_zone:
             return None
-            
+
         finder = Pathfinding()
-        
+
         best_path = finder.find_shortest_path(
-            self.start_zone, 
-            self.end_zone, 
+            self.start_zone,
+            self.end_zone,
             self.adjacency_list
         )
-        
+
         return best_path

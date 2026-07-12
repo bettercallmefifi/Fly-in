@@ -19,6 +19,6 @@ class Drone:
         if self.status != "arrived" and self.get_next_zone() is not None:
             self.current_step += 1
             self.status = "moving"
-            
+
             if self.current_step == len(self.path) - 1:
                 self.status = "arrived"

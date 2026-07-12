@@ -148,7 +148,8 @@ class Parser:
             raw_metadata = data_list[last_bracket_idx + 1:-1]
             if raw_metadata.startswith(" ") or raw_metadata.endswith(" "):
                 raise ParsingError(
-                    "Invalid metadata: spaces just inside the brackets are strictly forbidden !"
+                    "Invalid metadata:"
+                    " spaces just inside the brackets are strictly forbidden !"
                     )
 
             base_data = data_list[:last_bracket_idx].strip()
@@ -224,7 +225,8 @@ class Parser:
             raw_metadata = data_list[last_bracket_idx + 1:-1]
             if raw_metadata.startswith(" ") or raw_metadata.endswith(" "):
                 raise ParsingError(
-                    "Invalid metadata: spaces just inside the brackets are strictly forbidden !"
+                    "Invalid metadata:"
+                    " spaces just inside the brackets are strictly forbidden !"
                     )
 
             base_data = data_list[:last_bracket_idx].strip()
@@ -232,7 +234,6 @@ class Parser:
             data = self.valid_metadata_connection(metadata_string)
         else:
             base_data = data_list
-
 
         base_elements = base_data.split("-", 1)
 

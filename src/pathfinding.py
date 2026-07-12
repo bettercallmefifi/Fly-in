@@ -16,7 +16,8 @@ class Pathfinding:
         else:
             return 1.0
 
-    def find_shortest_path(self,
+    def find_shortest_path(
+        self,
         start_zone: Any,
         end_zone: Any,
         adjacency_list: Dict[Any, List[Any]]
@@ -55,15 +56,16 @@ class Pathfinding:
                     heapq.heappush(pq, (new_cost, neighbor.name, neighbor))
         return None
 
-    def build_path(self,
-                previous_nodes: Dict[Any, Any],
-                end_zone: Any
-                )-> List[Any]:
+    def build_path(
+        self,
+        previous_nodes: Dict[Any, Any],
+        end_zone: Any
+    ) -> List[Any]:
         path = []
         current = end_zone
         while current is not None:
             path.append(current)
             current = previous_nodes.get(current)
-		
+
         path.reverse()
         return path

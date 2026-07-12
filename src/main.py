@@ -1,6 +1,7 @@
 import sys
 from parsing import Parser, ParsingError
 
+
 def valid_arg() -> str:
     if len(sys.argv) != 2:
         print("Invalid arguments")
@@ -47,7 +48,8 @@ if __name__ == "__main__":
 from parsing import Parser, ParsingError
 
 def main():
-    # 1. Kan-t2akdou blli dkhlna smyat l-fichier f command line (mthal: make run MAP=...)
+    # 1. Kan-t2akdou blli dkhlna smyat l-fichier
+    #  f command line (mthal: make run MAP=...)
     if len(sys.argv) < 2:
         print("❌ Error: Khassk t-3ti smyat l-fichier dyal l-map!")
         print("Mthal: python3 src/main.py maps/easy/01_linear_path.txt")
@@ -67,15 +69,20 @@ def main():
 
         # 3. N-printiw ZONES
         print("\n📍 ZONES L-MAWJOUDIN:")
-        
-        # Kan-ftardou blli 'parser.graph.zones' fiha l-ma7attat (Dictionary wla List)
+
+        # Kan-ftardou blli 'parser.graph.zones'
+        # fiha l-ma7attat (Dictionary wla List)
         # Ila kant Dictionary {smiya: Zone_Object}, 3yyt liha b .values():
         if hasattr(parser.graph, 'zones'):
             # Check ila kant dict wla list
-            zones_list = parser.graph.zones.values() if isinstance(parser.graph.zones, dict) else parser.graph.zones
-            
+            zones_list = parser.graph.zones.values()
+            if isinstance(parser.graph.zones, dict) else parser.graph.zones
+
             for z in zones_list:
-                print(f" - M7tta: [{z.name}] | X:{z.x} Y:{z.y} | Max Drones: {z.max_drones} | Color: {z.color} | Type: {z.zone_type}")
+                print(f" - M7tta: [{z.name}]
+                | X:{z.x} Y:{z.y} | Max Drones:
+                 {z.max_drones} | Color: {z.color} |
+                 Type: {z.zone_type}")
         else:
             print(" ⚠️ L-Classe Graph dyalek ma-fihach l-attribut 'zones'.")
 
@@ -83,23 +90,32 @@ def main():
 
         # 4. N-printiw CONNECTIONS
         print("\n🔗 CONNECTIONS (T-TORQAN):")
-        
+
         if hasattr(parser.graph, 'connections'):
             for c in parser.graph.connections:
                 # Kan-ftardou blli l-Connection 3ndha name1, name2 w l-capacity
-                # Ila knti msmihom f l-classe Connection b smia khra (mthal: c.zone1 w c.zone2), beddelhom hna
+                # Ila knti msmihom f
+                #  l-classe Connection b smia khra
+                # (mthal: c.zone1 w c.zone2), beddelhom hna
                 n1 = getattr(c, 'name1', getattr(c, 'zone1', 'Unknown'))
-                n2 = getattr(c, 'name2', getattr(c, 'zone2', 'Unknown'))
-                cap = getattr(c, 'data', getattr(c, 'capacity', getattr(c, 'max_link_capacity', 1)))
-                
-                print(f" - Triq bin: [{n1}] <---> [{n2}] | Max Capacity: {cap}")
+                n2 = getattr(c, 'name2', getattr(c, 'zone2',
+                 'Unknown'))
+                cap = getattr(c, 'data',
+                getattr(c, 'capacity', getattr(c, 'max_link_capacity', 1)))
+
+                print(
+                f" - Triq bin: [{n1}] <---> [{n2}] | Max Capacity: {cap}"
+                )
         else:
-            print(" ⚠️ L-Classe Graph dyalek ma-fihach l-attribut 'connections'.")
-            
+            print(
+            " ⚠️ L-Classe Graph dyalek ma-fihach l-attribut 'connections'."
+            )
+
         print("\n" + "=" * 60)
 
     except ParsingError as e:
-        # Ila lqa chi mouchkil f l-parsing (b7al Metadata empty), ghadi y-tbe3 lik l-error hna
+        # Ila lqa chi mouchkil f l-parsing
+        # (b7al Metadata empty), ghadi y-tbe3 lik l-error hna
         print(f"❌ Error f l'Parsing:\n{e}")
         sys.exit(1)
 
