@@ -18,22 +18,20 @@ class Graph:
 
         z1 = self.zones[connection.zone1]
         z2 = self.zones[connection.zone2]
-        # N-rbtohom mn jouj jwayh
         self.adjacency_list[z1].append(z2)
         self.adjacency_list[z2].append(z1)
 
     def calculate_drone_path(self, total_drones):
-
         if not self.start_zone or not self.end_zone:
             return None
 
         finder = Pathfinding()
 
-        best_path = finder.find_disjoint_paths(
+        best_paths = finder.find_smart_paths(
             self.start_zone,
             self.end_zone,
             self.adjacency_list,
             total_drones
         )
 
-        return best_path
+        return best_paths

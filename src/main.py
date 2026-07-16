@@ -1,5 +1,6 @@
 import sys
 from parsing import Parser, ParsingError
+from simulation import Simulation
 
 
 def valid_arg() -> str:
@@ -15,7 +16,6 @@ def main():
 
     try:
         parser.parsing()
-
         graph = parser.graph
 
         print("\n================ Graph ========")
@@ -26,19 +26,21 @@ def main():
         print(f"End Zone     : {graph.end_zone.name}")
         print("=======================================================")
 
-        # f weste def main(), wste bloc try:
-        print("\n================ Natija dyal Pathfinding ==============")
-        # Kan-passiw total_drones l'graph
         best_paths = graph.calculate_drone_path(parser.total_drones)
 
-        if best_paths:
-            print(f"L9ina {len(best_paths)} tor9an ma-kayt9at3ouch!")
-            for i, path in enumerate(best_paths, 1):
-                path_names = [zone.name for zone in path]
-                print(f"Tri9 {i}: {' -> '.join(path_names)} (Toul: {len(path)-1})")
-        else:
+        if not best_paths:
             print("Makaynach 7ta tri9 bin Start w End f had l'kharita!")
+            return
+
+        print("\n================ Natija dyal Pathfinding ==============")
+        print(f"L9ina {len(best_paths)} tor9an!")
+        for i, path in enumerate(best_paths, 1):
+            path_names = [zone.name for zone in path]
+            print(f"Tri9 {i}: {' -> '.join(path_names)} (Toul: {len(path)-1})")
         print("=======================================================")
+
+        sim = Simulation(graph, parser.total_drones, best_paths)
+        sim.run()
 
     except ParsingError as e:
         print(f"{e}")

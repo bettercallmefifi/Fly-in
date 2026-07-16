@@ -1,5 +1,5 @@
 import heapq
-from typing import Dict, List, Optional, Any, Set
+from typing import Dict, List, Optional, Any
 
 
 class Pathfinding:
@@ -21,20 +21,21 @@ class Pathfinding:
         start_zone: Any,
         end_zone: Any,
         adjacency_list: Dict[Any, List[Any]],
-        blocked_zones: Set[Any] = None
+        zone_penalties: Dict[Any, float] = None
     ) -> Optional[List[Any]]:
 
-        if blocked_zones is None:
-            blocked_zones = set()
+        if zone_penalties is None:
+            zone_penalties = {}
 
         distances = {start_zone: 0.0}
         previous_nodes = {start_zone: None}
 
         pq = [(0.0, start_zone.name, start_zone)]
-
         visited = set()
+
         while pq:
             current_cost, _, current_zone = heapq.heappop(pq)
+
             if current_zone == end_zone:
                 return self.build_path(previous_nodes, end_zone)
 
@@ -45,17 +46,16 @@ class Pathfinding:
             neighbors = adjacency_list.get(current_zone, [])
 
             for neighbor in neighbors:
-
-                if neighbor in blocked_zones and neighbor != end_zone:
-                    continue
-
                 if neighbor in visited:
                     continue
 
-                cost = self.get_zone_cost(neighbor.zone_type)
+                base_cost = self.get_zone_cost(neighbor.zone_type)
 
-                if cost == float('inf'):
+                if base_cost == float('inf'):
                     continue
+
+                penalty = zone_penalties.get(neighbor, 0.0)
+                cost = base_cost + penalty
 
                 new_cost = current_cost + cost
                 if neighbor not in distances or new_cost < distances[neighbor]:
@@ -78,45 +78,44 @@ class Pathfinding:
         path.reverse()
         return path
 
-    def find_disjoint_paths(
-            self,
-            start_zone: Any,
-            end_zone: Any,
-            adjacency_list: Dict[Any, List[Any]],
-            total_drones: int
+    def find_smart_paths(
+        self,
+        start_zone: Any,
+        end_zone: Any,
+        adjacency_list: Dict[Any, List[Any]],
+        total_drones: int
     ) -> List[List[Any]]:
 
-        all_path = []
-        blocked_zones = set()
+        all_unique_paths = []
+        zone_penalties = {}
         best_turn_count = float('inf')
         best_paths_combination = []
-
-        while True:
+        for _ in range(50):
             new_path = self.find_shortest_path(
                 start_zone,
                 end_zone,
                 adjacency_list,
-                blocked_zones
+                zone_penalties
             )
-
             if not new_path:
                 break
 
-            all_path.append(new_path)
-
             for zone in new_path:
                 if zone != start_zone and zone != end_zone:
-                    blocked_zones.add(zone)
-            current_turns = self.calculate_turns(all_path, total_drones)
+                    zone_penalties[zone] = zone_penalties.get(zone, 0.0) + 0.1
 
-            if current_turns >= best_turn_count:
-                all_path.pop()
-                break
-            else:
-                best_turn_count = current_turns
-                best_paths_combination = list(all_path)
+            if new_path not in all_unique_paths:
+                all_unique_paths.append(new_path)
+                current_turns = self.calculate_turns(
+                    all_unique_paths, total_drones
+                    )
 
-        return best_paths_combination
+                if current_turns < best_turn_count:
+                    best_turn_count = current_turns
+                    best_paths_combination = list(all_unique_paths)
+
+        return (best_paths_combination if
+                best_paths_combination else all_unique_paths)
 
     def calculate_turns(
             self,
