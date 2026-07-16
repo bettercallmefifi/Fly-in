@@ -1,5 +1,5 @@
 import heapq
-from typing import Dict, List, Optional, Any
+from typing import Dict, List, Optional, Any, Set
 
 
 class Pathfinding:
@@ -20,8 +20,12 @@ class Pathfinding:
         self,
         start_zone: Any,
         end_zone: Any,
-        adjacency_list: Dict[Any, List[Any]]
+        adjacency_list: Dict[Any, List[Any]],
+        blocked_zones: Set[Any] = None
     ) -> Optional[List[Any]]:
+
+        if blocked_zones is None:
+            blocked_zones = set()
 
         distances = {start_zone: 0.0}
         previous_nodes = {start_zone: None}
@@ -41,6 +45,10 @@ class Pathfinding:
             neighbors = adjacency_list.get(current_zone, [])
 
             for neighbor in neighbors:
+
+                if neighbor in blocked_zones and neighbor != end_zone:
+                    continue
+
                 if neighbor in visited:
                     continue
 
@@ -69,3 +77,67 @@ class Pathfinding:
 
         path.reverse()
         return path
+
+    def find_disjoint_paths(
+            self,
+            start_zone: Any,
+            end_zone: Any,
+            adjacency_list: Dict[Any, List[Any]],
+            total_drones: int
+    ) -> List[List[Any]]:
+
+        all_path = []
+        blocked_zones = set()
+        best_turn_count = float('inf')
+        best_paths_combination = []
+
+        while True:
+            new_path = self.find_shortest_path(
+                start_zone,
+                end_zone,
+                adjacency_list,
+                blocked_zones
+            )
+
+            if not new_path:
+                break
+
+            all_path.append(new_path)
+
+            for zone in new_path:
+                if zone != start_zone and zone != end_zone:
+                    blocked_zones.add(zone)
+            current_turns = self.calculate_turns(all_path, total_drones)
+
+            if current_turns >= best_turn_count:
+                all_path.pop()
+                break
+            else:
+                best_turn_count = current_turns
+                best_paths_combination = list(all_path)
+
+        return best_paths_combination
+
+    def calculate_turns(
+            self,
+            paths: List[List[Any]],
+            total_drones: int
+    ) -> int:
+
+        if not paths:
+            return float('inf')
+
+        path_lengths = [len(p) - 1 for p in paths]
+        path_lengths.sort()
+
+        shortest_len = path_lengths[0]
+        k = len(path_lengths)
+
+        diff_sum = sum(length - shortest_len for length in path_lengths)
+
+        if total_drones > diff_sum:
+            drones_left = total_drones - diff_sum
+            turns = shortest_len - 1 + diff_sum + (drones_left + k - 1) // k
+            return turns
+        else:
+            return shortest_len - 1 + total_drones

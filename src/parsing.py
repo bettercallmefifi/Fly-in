@@ -92,7 +92,7 @@ class Parser:
                 elif lower_line.startswith("connection:"):
                     connections_to_parse.append((line_num, line))
                 else:
-                    raise ParsingError("There is no data !")
+                    raise ParsingError("invalid data !")
 
             except ParsingError as e:
                 raise ParsingError(f"Error on line {line_num}: {e}")

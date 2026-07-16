@@ -26,14 +26,16 @@ def main():
         print(f"End Zone     : {graph.end_zone.name}")
         print("=======================================================")
 
+        # f weste def main(), wste bloc try:
         print("\n================ Natija dyal Pathfinding ==============")
-        best_path = graph.calculate_drone_path()
+        # Kan-passiw total_drones l'graph
+        best_paths = graph.calculate_drone_path(parser.total_drones)
 
-        if best_path:
-            # Kan-jbdou smyat dyal l'zones mn l'objects w kan-lasqohom b ' -> '
-            path_names = [zone.name for zone in best_path]
-            print(f"A9sar tri9 hiya: {' -> '.join(path_names)}")
-            print(f"3adad l'Ma7attat f t-tri9: {len(best_path)}")
+        if best_paths:
+            print(f"L9ina {len(best_paths)} tor9an ma-kayt9at3ouch!")
+            for i, path in enumerate(best_paths, 1):
+                path_names = [zone.name for zone in path]
+                print(f"Tri9 {i}: {' -> '.join(path_names)} (Toul: {len(path)-1})")
         else:
             print("Makaynach 7ta tri9 bin Start w End f had l'kharita!")
         print("=======================================================")
