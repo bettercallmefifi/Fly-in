@@ -1,7 +1,7 @@
 from graph import Graph
 from connection import Connection
 from zone import Zone
-from typing import Tuple, Dict
+from typing import Tuple, Dict, Set, FrozenSet
 import random
 
 
@@ -10,15 +10,15 @@ class ParsingError(Exception):
 
 
 class Parser:
-    def __init__(self, file_name: str):
+    def __init__(self, file_name: str) -> None:
         self.file_name = file_name
-        self.zone_names = set()
-        self.seen_connections = set()
-        self.positions = set()
+        self.zone_names: Set[str] = set()
+        self.seen_connections: Set[FrozenSet[str]] = set()
+        self.positions: Set[Tuple[int, int]] = set()
         self.total_drones = 0
         self.graph = Graph()
 
-    def parsing(self):
+    def parsing(self) -> None:
         try:
             with open(self.file_name, "r") as f:
                 lines = f.readlines()
@@ -109,12 +109,12 @@ class Parser:
                 raise ParsingError(f"Error on line {line_num}: {e}")
 
     def parse_nb_drones(self, line: str) -> None:
-        line = line.split(":")
+        parts = line.split(":")
 
-        if len(line) != 2:
+        if len(parts) != 2:
             raise ParsingError("Invalid data !")
         try:
-            nb_drones = int(line[1].strip())
+            nb_drones = int(parts[1].strip())
         except ValueError:
             raise ParsingError("Invalid nb_drones")
 
@@ -129,14 +129,14 @@ class Parser:
         is_start = line.lower().startswith("start_hub")
         is_end = line.lower().startswith("end_hub")
 
-        line = line.split(":", 1)
+        parts = line.split(":", 1)
 
-        if len(line) != 2:
+        if len(parts) != 2:
             raise ParsingError("Invalid data !")
 
-        data_list = line[1].strip()
+        data_list = parts[1].strip()
         metadata_string = ""
-        data = {}
+        data: Dict[str, str | int] = {}
 
         if data_list.endswith("]"):
 
@@ -192,10 +192,10 @@ class Parser:
         if is_unlimited:
             final_max_drones = self.total_drones
         else:
-            final_max_drones = data.get("max_drones", 1)
+            final_max_drones = int(data.get("max_drones", 1))
 
-        color = data.get("color", "#FFFFFF")
-        zone_type = data.get("zone", "normal")
+        color = str(data.get("color", "#FFFFFF"))
+        zone_type = str(data.get("zone", "normal"))
 
         new_zone = Zone(name, X, Y, final_max_drones, color, zone_type)
         self.graph.add_zone(new_zone)
@@ -208,12 +208,12 @@ class Parser:
 
     def parse_connection(self, line: str) -> None:
         data = 1
-        line = line.split(":", 1)
+        parts = line.split(":", 1)
 
-        if len(line) != 2:
+        if len(parts) != 2:
             raise ParsingError("Invalid data !")
 
-        data_list = line[1].strip()
+        data_list = parts[1].strip()
         metadata_string = ""
 
         if data_list.endswith("]"):

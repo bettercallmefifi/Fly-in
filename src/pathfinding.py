@@ -3,7 +3,7 @@ from typing import Dict, List, Optional, Any
 
 
 class Pathfinding:
-    def __init__(self):
+    def __init__(self) -> None:
         pass
 
     def get_zone_cost(self, zone_type: str) -> float:
@@ -21,7 +21,7 @@ class Pathfinding:
         start_zone: Any,
         end_zone: Any,
         adjacency_list: Dict[Any, List[Any]],
-        zone_penalties: Dict[Any, float] = None
+        zone_penalties: Optional[Dict[Any, float]] = None
     ) -> Optional[List[Any]]:
 
         if zone_penalties is None:
@@ -86,10 +86,11 @@ class Pathfinding:
         total_drones: int
     ) -> List[List[Any]]:
 
-        all_unique_paths = []
-        zone_penalties = {}
-        best_turn_count = float('inf')
-        best_paths_combination = []
+        all_unique_paths: List[List[Any]] = []
+        zone_penalties: Dict[Any, float] = {}
+        best_turn_count: float = float('inf')
+        best_paths_combination: List[List[Any]] = []
+
         for _ in range(50):
             new_path = self.find_shortest_path(
                 start_zone,
@@ -121,7 +122,7 @@ class Pathfinding:
             self,
             paths: List[List[Any]],
             total_drones: int
-    ) -> int:
+    ) -> float:
 
         if not paths:
             return float('inf')
@@ -137,6 +138,6 @@ class Pathfinding:
         if total_drones > diff_sum:
             drones_left = total_drones - diff_sum
             turns = shortest_len - 1 + diff_sum + (drones_left + k - 1) // k
-            return turns
+            return float(turns)
         else:
-            return shortest_len - 1 + total_drones
+            return float(shortest_len - 1 + total_drones)

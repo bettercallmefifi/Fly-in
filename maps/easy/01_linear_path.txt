@@ -4,7 +4,7 @@
 nb_drones: 3
 
 start_hub: [{start}] 0 0 [color=green max_drones=1] #ge
-hub: waypoint1 1 0 [color=o zone=restricted]
+hub: waypoint1 1 0 [color=o]
 hub: waypoint2 2 0 [color=o]
 hub: waypoint3 3 0 [color=o]
 end_hub: goal 5 0 [color=red]
