@@ -50,15 +50,13 @@ class Visualizer:
             scaled[z.name] = (int(sx), int(sy))
         return scaled
 
-    def hex_to_rgb(self, hex_color: str) -> Tuple[int, int, int]:
-        """Convert a hex color string into an RGB tuple."""
+    def resolve_color(self, color_name: str) -> Tuple[int, int, int]:
+        """Convert a color name or hex string to RGB using Pygame natively."""
         try:
-            hex_color = hex_color.lstrip('#')
-            r = int(hex_color[0:2], 16)
-            g = int(hex_color[2:4], 16)
-            b = int(hex_color[4:6], 16)
-            return (r, g, b)
+            c = pygame.Color(color_name)
+            return (c.r, c.g, c.b)
         except ValueError:
+            # Ila kant smiya d l'loun ghalta, rj3o rmidi
             return (200, 200, 200)
 
     def get_drone_positions(
@@ -108,8 +106,8 @@ class Visualizer:
             anim_from_index: int,
             t: float
     ) -> None:
-        """Render the complete graphical state for the
-        current simulation frame."""
+        """Render the complete graphical state for
+        the current simulation frame."""
         self.screen.fill((30, 30, 40))
         coords = self.get_scaled_coords(sim.graph)
 
@@ -133,7 +131,8 @@ class Visualizer:
 
         for name, zone in sim.graph.zones.items():
             p = coords[name]
-            color = self.hex_to_rgb(zone.color)
+            # Hna khedmna b l'methode jdida
+            color = self.resolve_color(zone.color)
             current_occupancy = zone_counts.get(name, 0)
 
             pygame.draw.circle(self.screen, color, p, self.node_radius)

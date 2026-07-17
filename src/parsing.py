@@ -1,25 +1,23 @@
-"""Module responsible for parsing and validating
-the map configuration file."""
+"""Module responsible for parsing and
+validating the map configuration file."""
 from graph import Graph
 from connection import Connection
 from zone import Zone
 from typing import Tuple, Dict, Set, FrozenSet
-import random
 
 
 class ParsingError(Exception):
-    """Custom exception raised for invalid map
-    file formats or data."""
+    """Custom exception raised for invalid map file formats or data."""
     pass
 
 
 class Parser:
-    """Parses the input file to construct the graph of
-    zones and connections."""
+    """Parses the input file to construct the
+    graph of zones and connections."""
 
     def __init__(self, file_name: str) -> None:
-        """Initialize the parser with a file name
-        and empty graph structures."""
+        """Initialize the parser with a
+        file name and empty graph structures."""
         self.file_name = file_name
         self.zone_names: Set[str] = set()
         self.seen_connections: Set[FrozenSet[str]] = set()
@@ -147,25 +145,26 @@ class Parser:
             raise ParsingError("Invalid data !")
 
         data_list = parts[1].strip()
-        metadata_string = ""
         data: Dict[str, str | int] = {}
 
         if data_list.endswith("]"):
+            # CHECK STRICT: Exactement we7da '[' w we7da ']'
+            if data_list.count("[") != 1 or data_list.count("]") != 1:
+                raise ParsingError(
+                    "Invalid metadata: strictly one '[' and one ']'"
+                    " are allowed!")
 
-            last_bracket_idx = data_list.rfind("[")
+            bracket_idx = data_list.find("[")
+            raw_metadata = data_list[bracket_idx + 1:-1]
 
-            if last_bracket_idx == -1:
-                raise ParsingError("Metadata most be start with '['!")
-
-            raw_metadata = data_list[last_bracket_idx + 1:-1]
             if raw_metadata.startswith(" ") or raw_metadata.endswith(" "):
                 raise ParsingError(
                     "Invalid metadata:"
                     " spaces just inside the brackets are strictly forbidden !"
                     )
 
-            base_data = data_list[:last_bracket_idx].strip()
-            metadata_string = data_list[last_bracket_idx + 1:-1].strip()
+            base_data = data_list[:bracket_idx].strip()
+            metadata_string = raw_metadata.strip()
             data = self.valid_metadata_hub(metadata_string)
         else:
             base_data = data_list
@@ -227,23 +226,25 @@ class Parser:
             raise ParsingError("Invalid data !")
 
         data_list = parts[1].strip()
-        metadata_string = ""
 
         if data_list.endswith("]"):
-            last_bracket_idx = data_list.rfind("[")
+            # CHECK STRICT: Exactement we7da '[' w we7da ']'
+            if data_list.count("[") != 1 or data_list.count("]") != 1:
+                raise ParsingError(
+                    "Invalid metadata: strictly one '[' and one ']' "
+                    "are allowed!")
 
-            if last_bracket_idx == -1:
-                raise ParsingError("Metadata most start with '['!")
+            bracket_idx = data_list.find("[")
+            raw_metadata = data_list[bracket_idx + 1:-1]
 
-            raw_metadata = data_list[last_bracket_idx + 1:-1]
             if raw_metadata.startswith(" ") or raw_metadata.endswith(" "):
                 raise ParsingError(
                     "Invalid metadata:"
                     " spaces just inside the brackets are strictly forbidden !"
                     )
 
-            base_data = data_list[:last_bracket_idx].strip()
-            metadata_string = data_list[last_bracket_idx + 1:-1].strip()
+            base_data = data_list[:bracket_idx].strip()
+            metadata_string = raw_metadata.strip()
             data = self.valid_metadata_connection(metadata_string)
         else:
             base_data = data_list
@@ -309,34 +310,6 @@ class Parser:
         metadata_allowed = ["zone", "color", "max_drones"]
         types_allowed = ["normal", "blocked", "restricted", "priority"]
         parsed_data: Dict[str, str | int] = {}
-        color_code = {
-                "green": "#008000", "red": "#FF0000",
-                "purple": "#800080",
-                "black": "#000000", "brown": "#A52A2A",
-                "orange": "#FFA500",
-                "maroon": "#800000", "gold": "#FFD700",
-                "darkred": "#8B0000",
-                "violet": "#EE82EE", "crimson": "#DC143C",
-                "rainbow": "#FF00FF",
-                "blue": "#0000FF", "yellow": "#FFFF00",
-                "cyan": "#00FFFF",
-                "lime": "#00FF00", "magenta": "#FF00FF",
-                "white": "#FFFFFF",
-                "gray": "#808080", "silver": "#C0C0C0",
-                "pink": "#FFC0CB",
-                "teal": "#008080", "navy": "#000080",
-                "olive": "#808000",
-                "coral": "#FF7F50", "salmon": "#FA8072",
-                "khaki": "#F0E68C",
-                "plum": "#DDA0DD", "indigo": "#4B0082",
-                "turquoise": "#40E0D0",
-                "azure": "#F0FFFF", "chocolate": "#D2691E",
-                "tomato": "#FF6347",
-                "orchid": "#DA70D6", "slate": "#708090",
-                "beige": "#F5F5DC",
-                "mint": "#98FF98", "lavender": "#E6E6FA",
-                "peach": "#FFDAB9"
-            }
 
         if not metadata:
             raise ParsingError("Metadata is empty !")
@@ -348,10 +321,13 @@ class Parser:
 
         items = metadata.split()
         for item in items:
-            if "=" not in item:
-                raise ParsingError(f"Invalid data: missing = in {item}")
+            # CHECK STRICT: Exactement '=' not more
+            if item.count("=") != 1:
+                raise ParsingError(
+                    f"Invalid data: strictly one '=' expected in '{item}'"
+                    )
 
-            detail, value = item.split("=", 1)
+            detail, value = item.split("=")
 
             if detail in parsed_data:
                 raise ParsingError(
@@ -374,14 +350,7 @@ class Parser:
                     raise ParsingError(
                         "Invalid metadata: color value cannot be empty!"
                         )
-                safe_color_name = value.lower()
-
-                if safe_color_name in color_code:
-                    hex_value = color_code[safe_color_name]
-                else:
-                    all_hex_colors = list(color_code.values())
-                    hex_value = random.choice(all_hex_colors)
-                parsed_data[detail] = hex_value
+                parsed_data[detail] = value
 
             elif detail == "max_drones":
                 try:
@@ -414,15 +383,18 @@ class Parser:
                 "Invalid metadata: most be contain just max_link_capacity !"
                 )
 
-        value = data[0].split("=", 1)
-        if value[0] == "max_link_capacity":
-            if len(value) != 2:
-                raise ParsingError(
-                    f"Invalid metadata format: '{data[0]}' "
-                    "is missing an '=' and a value!"
-                    )
+        # CHECK STRICT: Exactement '=' we7da
+        if data[0].count("=") != 1:
+            raise ParsingError(
+                f"Invalid metadata format: exactly one '=' is "
+                f"required in '{data[0]}' !"
+                )
+
+        key, val = data[0].split("=")
+
+        if key == "max_link_capacity":
             try:
-                max_capacity = int(value[1])
+                max_capacity = int(val)
             except ValueError:
                 raise ParsingError(
                     "Invalid metadata: max must be integer !"
