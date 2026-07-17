@@ -1,18 +1,25 @@
+"""Entry point for the Drone Routing Simulation program."""
 import sys
 from parsing import Parser, ParsingError
 from simulation import Simulation
 from visualizer import Visualizer
+from typing import Tuple
 
 
-def valid_arg() -> str:
-    if len(sys.argv) != 2:
-        print("Invalid arguments")
+def valid_arg() -> Tuple[str, bool]:
+    """Parse command-line arguments to extract the map file and options."""
+    if len(sys.argv) == 3 and sys.argv[1] == "--capacity-info":
+        return sys.argv[2], True
+    elif len(sys.argv) == 2:
+        return sys.argv[1], False
+    else:
+        print("Usage: python3 main.py [--capacity-info] <map_file>")
         sys.exit(1)
-    return sys.argv[1]
 
 
 def main() -> None:
-    file_name = valid_arg()
+    """Execute the core logic: Parse map, calculate paths, run simulation."""
+    file_name, flag = valid_arg()
     parser = Parser(file_name)
 
     try:
@@ -37,13 +44,11 @@ def main() -> None:
             print("Makaynach 7ta tri9 bin Start w End f had l'kharita!")
             return
 
-        sim = Simulation(graph, parser.total_drones, best_paths)
+        sim = Simulation(graph, parser.total_drones, best_paths, flag)
+        sim.run()
+
         vis = Visualizer()
-
-        sim.run(visualizer=vis)
-
-        while True:
-            vis.handle_events()
+        vis.run(sim)
 
     except ParsingError as e:
         print(f"{e}")

@@ -1,8 +1,12 @@
+"""Module containing the Zone class logic."""
 from drone import Drone
 from typing import List
 
 
 class Zone:
+    """Represents a hub/node in the graph with specific
+    properties and capacities."""
+
     def __init__(
         self,
         name: str,
@@ -12,6 +16,7 @@ class Zone:
         color: str = "none",
         zone_type: str = "normal",
     ) -> None:
+        """Initialize a zone with its coordinates, capacity, and metadata."""
         self.name = name
         self.x = x
         self.y = y
@@ -21,4 +26,4 @@ class Zone:
 
         self.current_drones_inside = 0
         self.drones: List[Drone] = []
-        self.neighbors: List[Zone] = []
+        self.neighbors: List['Zone'] = []

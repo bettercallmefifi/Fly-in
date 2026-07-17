@@ -1,12 +1,17 @@
+"""Module containing the Pathfinding algorithm logic."""
 import heapq
 from typing import Dict, List, Optional, Any
 
 
 class Pathfinding:
+    """Handles the pathfinding logic to route drones efficiently."""
+
     def __init__(self) -> None:
+        """Initialize the Pathfinding object."""
         pass
 
     def get_zone_cost(self, zone_type: str) -> float:
+        """Determine the movement cost based on the zone type."""
         if zone_type == "blocked":
             return float('inf')
         elif zone_type == "restricted":
@@ -23,7 +28,8 @@ class Pathfinding:
         adjacency_list: Dict[Any, List[Any]],
         zone_penalties: Optional[Dict[Any, float]] = None
     ) -> Optional[List[Any]]:
-
+        """Find the shortest path between start
+        and end zones using Dijkstra."""
         if zone_penalties is None:
             zone_penalties = {}
 
@@ -69,6 +75,7 @@ class Pathfinding:
         previous_nodes: Dict[Any, Any],
         end_zone: Any
     ) -> List[Any]:
+        """Reconstruct the path from the end zone back to the start zone."""
         path = []
         current = end_zone
         while current is not None:
@@ -85,7 +92,7 @@ class Pathfinding:
         adjacency_list: Dict[Any, List[Any]],
         total_drones: int
     ) -> List[List[Any]]:
-
+        """Find a combination of paths to minimize total simulation turns."""
         all_unique_paths: List[List[Any]] = []
         zone_penalties: Dict[Any, float] = {}
         best_turn_count: float = float('inf')
@@ -103,7 +110,7 @@ class Pathfinding:
 
             for zone in new_path:
                 if zone != start_zone and zone != end_zone:
-                    zone_penalties[zone] = zone_penalties.get(zone, 0.0) + 0.1
+                    zone_penalties[zone] = zone_penalties.get(zone, 0.0) + 0.01
 
             if new_path not in all_unique_paths:
                 all_unique_paths.append(new_path)
@@ -123,7 +130,7 @@ class Pathfinding:
             paths: List[List[Any]],
             total_drones: int
     ) -> float:
-
+        """Estimate the total number of turns required for the given paths."""
         if not paths:
             return float('inf')
 

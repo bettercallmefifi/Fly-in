@@ -1,3 +1,5 @@
+"""Module responsible for parsing and validating
+the map configuration file."""
 from graph import Graph
 from connection import Connection
 from zone import Zone
@@ -6,11 +8,18 @@ import random
 
 
 class ParsingError(Exception):
+    """Custom exception raised for invalid map
+    file formats or data."""
     pass
 
 
 class Parser:
+    """Parses the input file to construct the graph of
+    zones and connections."""
+
     def __init__(self, file_name: str) -> None:
+        """Initialize the parser with a file name
+        and empty graph structures."""
         self.file_name = file_name
         self.zone_names: Set[str] = set()
         self.seen_connections: Set[FrozenSet[str]] = set()
@@ -19,6 +28,7 @@ class Parser:
         self.graph = Graph()
 
     def parsing(self) -> None:
+        """Read and validate the map file, building the internal graph."""
         try:
             with open(self.file_name, "r") as f:
                 lines = f.readlines()
@@ -109,6 +119,7 @@ class Parser:
                 raise ParsingError(f"Error on line {line_num}: {e}")
 
     def parse_nb_drones(self, line: str) -> None:
+        """Extract and validate the total number of drones from a line."""
         parts = line.split(":")
 
         if len(parts) != 2:
@@ -124,6 +135,7 @@ class Parser:
         self.total_drones = nb_drones
 
     def parse_zone(self, line: str) -> None:
+        """Extract and validate zone details, adding it to the graph."""
         is_unlimited = (line.lower().startswith("start_hub")
                         or line.lower().startswith("end_hub"))
         is_start = line.lower().startswith("start_hub")
@@ -207,6 +219,7 @@ class Parser:
                 self.graph.end_zone = new_zone
 
     def parse_connection(self, line: str) -> None:
+        """Extract and validate a connection between two existing zones."""
         data = 1
         parts = line.split(":", 1)
 
@@ -277,11 +290,13 @@ class Parser:
         self.graph.add_connection(new_conn)
 
     def valid_name(self, name: str) -> bool:
+        """Check if a zone name complies with formatting rules (no dashes)."""
         if "-" in name:
             return False
         return True
 
     def valid_xy(self, x: str, y: str) -> Tuple[int, int]:
+        """Validate and convert coordinate strings to integers."""
         try:
             X = int(x)
             Y = int(y)
@@ -290,6 +305,7 @@ class Parser:
         return X, Y
 
     def valid_metadata_hub(self, metadata: str) -> Dict[str, str | int]:
+        """Parse and validate optional metadata associated with a zone."""
         metadata_allowed = ["zone", "color", "max_drones"]
         types_allowed = ["normal", "blocked", "restricted", "priority"]
         parsed_data: Dict[str, str | int] = {}
@@ -383,6 +399,7 @@ class Parser:
         return parsed_data
 
     def valid_metadata_connection(self, metadata: str) -> int:
+        """Parse and validate optional metadata for a connection."""
         if not metadata:
             raise ParsingError("Metadata is empty !")
 
