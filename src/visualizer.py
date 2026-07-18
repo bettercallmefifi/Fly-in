@@ -8,7 +8,7 @@ from typing import Dict, Tuple, Any
 class Visualizer:
     """Manages the Pygame window and renders the graph and drones."""
 
-    def __init__(self, width: int = 1400, height: int = 900) -> None:
+    def __init__(self, width: int = 1900, height: int = 1000) -> None:
         """Initialize Pygame, display settings, and fonts."""
         pygame.init()
         self.width = width
@@ -56,7 +56,7 @@ class Visualizer:
             c = pygame.Color(color_name)
             return (c.r, c.g, c.b)
         except ValueError:
-            # Ila kant smiya d l'loun ghalta, rj3o rmidi
+            # if the color name dosen't exist return a default color
             return (200, 200, 200)
 
     def get_drone_positions(

@@ -30,7 +30,7 @@ def main() -> None:
             print("Start Zone or End Zone missing in the graph!")
             return
 
-        print("\n================ Graph ========")
+        print("\n====================== Graph ==========================")
         print(f"Total Drones : {parser.total_drones}")
         print(f"Les Zones    : {len(graph.zones)}")
         print(f"Connections  : {len(graph.connections)}")
@@ -41,7 +41,7 @@ def main() -> None:
         best_paths = graph.calculate_drone_path(parser.total_drones)
 
         if not best_paths:
-            print("Makaynach 7ta tri9 bin Start w End f had l'kharita!")
+            print("there is no path from the start to the end zone!")
             return
 
         sim = Simulation(graph, parser.total_drones, best_paths, flag)
