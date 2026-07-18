@@ -1,185 +1,72 @@
-# Fly-In
+# *This project has been created as part of the 42 curriculum by feel-idr.*
 
-Fly-In is a 42 curriculum algorithm project about routing multiple drones through a graph of zones while respecting movement costs, zone capacities, link limits, and turn-by-turn simulation rules.
+## Description
 
-This README is a working roadmap for the project. It summarizes the subject, the implementation plan, and the tasks that still need to be completed to reach a fully reviewable submission.
+**Fly-in** is a simulation project designed to manage a fleet of autonomous drones navigating a network of connected zones. The core objective is to route all drones from a designated `start_hub` to a `goal_hub` in the fewest possible turns, while respecting strict zone occupancy rules, connection capacities, and movement costs associated with different zone types (normal, restricted, priority, blocked).
 
-## Project Goal
+## Instructions
 
-Build a Python 3.10+ application that:
+### Installation
 
-- parses the custom map format used by the subject,
-- computes valid and efficient paths for all drones,
-- simulates their movement turn by turn without collisions,
-- prints the moves for each simulation turn,
-- provides a visual or colored representation of the run,
-- passes `flake8` and `mypy` without errors,
-- ships with the required `Makefile` commands.
+To set up the project, ensure you have Python 3.10+ installed. Create a virtual environment and install the required dependencies:
 
-The main optimization target is to finish the simulation in the fewest possible turns while keeping the solution correct on every map category.
+```bash
+python3 -m venv venv
+source venv/bin/activate
+make install
 
-## Subject Rules To Respect
+```
 
-- Python 3.10 or later.
-- Object-oriented design.
-- No external graph libraries such as `networkx` or `graphlib`.
-- Type hints everywhere they matter.
-- Strict `flake8` compliance.
-- `mypy` must pass cleanly.
-- Graceful error handling for invalid input files.
-- Required `Makefile` targets: `install`, `run`, `debug`, `clean`, `lint`.
-- Output must show the drones moved on each turn.
+### Execution
 
-## Current Repository Layout
+You can run the simulation by passing a map file to the main script:
 
-- `src/parser.py` handles input parsing.
-- `src/zone.py` contains the zone model.
-- `src/main.py` currently drives the menu / entry point flow.
-- `src/graph.py`, `src/bfs.py`, `src/drone.py`, `src/connection.py`, `src/paths_manager.py`, `src/simulator.py`, and `src/visualisation.py` are the main implementation surfaces still to be completed or stabilized.
-- `maps/` contains the evaluation maps grouped by difficulty.
+```bash
+# Basic run
+make run MAP=maps/easy/01_linear_path.txt
 
-## Roadmap
+# Run with capacity info flag
+python3 src/main.py --capacity-info maps/easy/01_linear_path.txt
 
-### Phase 1: Define the foundation
+```
 
-Goal: lock the project structure and the core data model before writing the optimization logic.
+### Cleanup
 
-Tasks:
+To remove temporary files and caches:
 
-- confirm the final module responsibilities for parser, graph, simulation, and visualization,
-- normalize the naming of entities such as zones, connections, drones, and hubs,
-- define the public APIs shared between modules,
-- add docstrings and type hints to every public class and function,
-- create the `Makefile` and the development commands required by the subject.
+```bash
+make clean
 
-### Phase 2: Finish the parser
+```
 
-Goal: reliably read the map format and reject malformed inputs with clear errors.
+## Implementation Strategy
 
-Tasks:
+The solution employs a **Dijkstra-based pathfinding algorithm** to dynamically determine the most efficient routes.
 
-- parse drone count metadata,
-- parse start and end hubs,
-- parse normal, restricted, priority, and blocked zones,
-- parse zone metadata such as color and capacity,
-- parse connections between zones,
-- validate duplicate definitions and missing required fields,
-- validate numeric fields and zone constraints,
-- raise subject-friendly parsing errors instead of crashing.
+* **Path Planning**: We calculate a weighted shortest path from the start to the end, applying penalties to zones to distribute drone traffic and prevent congestion.
 
-### Phase 3: Build the graph model
 
-Goal: represent the map in memory in a way that supports pathfinding and simulation.
+* **Turn Scheduling**: The simulation engine operates turn-by-turn. It evaluates zone and connection capacities in real-time. Drones destined for `restricted` zones are scheduled with a 2-turn movement cost, where the destination capacity is reserved immediately to prevent deadlocks.
 
-Tasks:
 
-- store zones as nodes and connections as edges,
-- track neighbors and capacities,
-- store movement cost per zone type,
-- expose helpers to check blocked zones and available capacity,
-- keep the start and end hubs as special cases with infinite practical throughput.
+* **Animation**: The visualizer uses linear interpolation between nodes to provide a smooth graphical representation of drone movement, while allowing the user to navigate the simulation history using arrow keys.
 
-### Phase 4: Implement pathfinding
 
-Goal: compute usable routes that minimize total turns and avoid dead ends, loops, and bottlenecks.
 
-Tasks:
+## Visual Representation
 
-- implement a shortest-path strategy suitable for weighted movement costs,
-- account for restricted zones that cost 2 turns,
-- prefer priority zones when multiple valid routes exist,
-- avoid blocked zones completely,
-- detect and handle dead ends and cycles,
-- prepare path sets for multiple drones, not just a single route,
-- support capacity-aware routing when a shorter path is not actually usable.
+The project features two modes of feedback:
 
-### Phase 5: Add turn-based simulation
+1. **Graphical Interface**: A `pygame`-based window that displays the graph layout, current occupancy of zones (`current/max`), and real-time movement of drones with interpolation.
 
-Goal: move drones step by step while respecting all occupancy rules.
 
-Tasks:
+2. **Terminal Output**: A step-by-step log in the standard format `D<ID>-<zone>`, providing a clear history of all drone movements throughout the simulation.
 
-- simulate all drones across turns,
-- ensure no zone exceeds `max_drones`,
-- ensure no link or connection capacity is exceeded,
-- handle waiting when a drone cannot move safely,
-- resolve conflicts deterministically,
-- stop the simulation when all drones reach the end hub.
 
-### Phase 6: Produce the required output
 
-Goal: show the simulation in the exact format expected by the subject.
+## Resources
 
-Tasks:
+* **Documentation**: Official Python documentation for `typing`, `heapq`, and `pygame`.
+* **AI Usage**: AI tools were utilized to assist with the structure of the simulation loop, debugging `mypy` type-checking errors, and implementing the `pygame` interpolation logic. All generated code was reviewed, tested, and integrated by the developer to ensure full understanding.
 
-- print each turn as a line of drone movements,
-- keep the format stable and machine-readable,
-- make sure the final run is easy to compare against expected output,
-- add helpful summaries or debug logs only outside the strict output path.
-
-### Phase 7: Add visualization
-
-Goal: give the user a readable view of the simulation.
-
-Tasks:
-
-- implement a terminal-based colored view or a graphical interface,
-- display zones, traffic, and drone progress clearly,
-- keep the visual layer separate from core simulation logic,
-- make the visual mode optional so it does not interfere with evaluation output.
-
-### Phase 8: Validate and harden
-
-Goal: make the project review-ready.
-
-Tasks:
-
-- run the project against all easy maps first,
-- then validate medium and hard maps,
-- measure turn counts and adjust heuristics where needed,
-- run `flake8` and `mypy` regularly,
-- add focused tests for parser failures and routing edge cases,
-- confirm the Makefile commands work on a clean environment.
-
-## Suggested Task Checklist
-
-- [ ] Finalize the parser and error handling.
-- [ ] Implement the graph and connection model.
-- [ ] Implement the drone model.
-- [ ] Implement pathfinding for weighted zones.
-- [ ] Add capacity-aware scheduling.
-- [ ] Build the simulation engine.
-- [ ] Print turn-by-turn movements.
-- [ ] Add visualization.
-- [ ] Add tests for valid and invalid maps.
-- [ ] Add `Makefile` targets.
-- [ ] Fix lint and typing issues.
-- [ ] Verify all map tiers.
-
-## Recommended Build Order
-
-1. Parser and data model.
-2. Graph construction and validation.
-3. Shortest-path logic.
-4. Simulation engine and conflict resolution.
-5. Output format and visualization.
-6. Testing, linting, and typing cleanup.
-
-## Definition Of Done
-
-The project is ready when:
-
-- every provided map can be parsed,
-- the simulation produces valid moves for every turn,
-- drones never violate capacity or occupancy rules,
-- the output is stable and compliant with the subject,
-- `make run`, `make debug`, `make lint`, `make clean`, and `make install` work,
-- `flake8` and `mypy` complete successfully,
-- the README documents the roadmap and the implementation status clearly.
-
-## Notes For Future Work
-
-- If the solver struggles on hard maps, the next improvement should be better scheduling rather than changing the parser.
-- If the parser accepts bad input, fix validation before tuning the algorithm.
-- If the output format is inconsistent, correct that before adding new features.
-- If the visual layer slows down the solver, keep it optional and decoupled.
+---
