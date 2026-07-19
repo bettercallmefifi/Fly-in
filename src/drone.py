@@ -32,3 +32,21 @@ class Drone:
 
             if self.current_step == len(self.path) - 1:
                 self.status = "arrived"
+
+
+def initialize_drones(
+        total_drones: int,
+        best_paths: List[List[Any]]
+) -> List[Drone]:
+    """Instantiate Drone objects and assign them their calculated paths."""
+    drones_list = []
+    path_index = 0
+
+    for i in range(1, total_drones + 1):
+        drone_id = f"D{i}"
+        chosen_path = best_paths[path_index % len(best_paths)]
+        new_drone = Drone(drone_id, chosen_path)
+        drones_list.append(new_drone)
+        path_index += 1
+
+    return drones_list

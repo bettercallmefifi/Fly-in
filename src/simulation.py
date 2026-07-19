@@ -1,5 +1,5 @@
 """Simulation module to handle turn-based drone movements."""
-from drone import Drone
+from drone import Drone, initialize_drones
 from graph import Graph
 from typing import List, Any, Set, Dict, Tuple
 
@@ -20,23 +20,14 @@ class Simulation:
         self.total_drones = total_drones
         self.best_paths = best_paths
         self.flag = flag
-        self.drones: List[Drone] = []
         self.turns = 0
 
         self.delayed_drones: Set[str] = set()
         self.history: List[Any] = []
 
-        self.initialize_drones()
-
-    def initialize_drones(self) -> None:
-        """Instantiate Drone objects and assign them their calculated paths."""
-        path_index = 0
-        for i in range(1, self.total_drones + 1):
-            drone_id = f"D{i}"
-            chosen_path = self.best_paths[path_index % len(self.best_paths)]
-            new_drone = Drone(drone_id, chosen_path)
-            self.drones.append(new_drone)
-            path_index += 1
+        self.drones: List[Drone] = initialize_drones(
+            self.total_drones, self.best_paths
+            )
 
     def capture_snapshot(self) -> Tuple[
             Dict[str, List[str]],
