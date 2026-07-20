@@ -53,6 +53,10 @@ def main() -> None:
     except ParsingError as e:
         print(f"{e}")
 
+    except KeyboardInterrupt:
+        print("\nSimulation interrupted by user. Exiting cleanly...")
+        sys.exit(0)
+
 
 if __name__ == "__main__":
     main()
