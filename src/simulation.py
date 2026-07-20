@@ -11,15 +11,13 @@ class Simulation:
             self,
             graph: Graph,
             total_drones: int,
-            best_paths: List[List[Any]],
-            flag: bool = False
+            best_paths: List[List[Any]]
             ) -> None:
         """Initialize the simulation with graph,
         total drones, and best paths."""
         self.graph = graph
         self.total_drones = total_drones
         self.best_paths = best_paths
-        self.flag = flag
         self.turns = 0
 
         self.delayed_drones: Set[str] = set()
@@ -114,12 +112,6 @@ class Simulation:
                         # NOTE: We do not increment next_zone occupancy here
                         # because it was already reserved in the previous turn.
                         raw_move = f"{drone.id}-{next_zone.name}"
-                        if self.flag and not is_end_zone:
-                            raw_move += f"-{
-                                next_zone.current_drones_inside
-                                }/{
-                                    next_zone.max_drones
-                                    }"
                         moves_this_turn.append(raw_move)
 
                     # 2. Drone is looking to move
@@ -147,11 +139,13 @@ class Simulation:
 
                                 conn.drones_on_link += 1
 
-                                raw_move = f"{drone.id}-{
-                                    current_zone.name
+                                raw_move = f"{
+                                    drone.id
                                     }-{
-                                        next_zone.name
-                                        }"
+                                        current_zone.name
+                                        }-{
+                                            next_zone.name
+                                            }"
                                 moves_this_turn.append(raw_move)
 
                             else:
@@ -166,12 +160,6 @@ class Simulation:
                                 conn.drones_on_link += 1
 
                                 raw_move = f"{drone.id}-{next_zone.name}"
-                                if self.flag and not is_end_zone:
-                                    raw_move += f"-{
-                                        next_zone.current_drones_inside
-                                        }/{
-                                            next_zone.max_drones
-                                            }"
                                 moves_this_turn.append(raw_move)
 
             if moves_this_turn:

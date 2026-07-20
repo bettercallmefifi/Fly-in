@@ -177,7 +177,8 @@ class Visualizer:
         info_surface = self.info_font.render(info_text, True, (255, 200, 0))
         self.screen.blit(info_surface, (20, 20))
 
-        inst_text = "-> /SPACE/ENTER: Next Turn| <-: Previous Turn |ESC: Quit"
+        inst_text = "-> / SPACE / ENTER: Next Turn  |  "
+        "<-: Previous Turn  |  ESC: Quit"
         inst_surface = self.info_font.render(inst_text, True, (150, 255, 150))
         self.screen.blit(inst_surface, (self.width - 650, 20))
 
@@ -206,6 +207,7 @@ class Visualizer:
                 elif event.type == pygame.KEYDOWN:
                     if event.key == pygame.K_ESCAPE:
                         running = False
+                    # ZEDNA K_RETURN HNA
                     elif event.key in (
                         pygame.K_RIGHT, pygame.K_SPACE, pygame.K_RETURN
                     ):
