@@ -208,6 +208,9 @@ class Parser:
         color = str(data.get("color", "#FFFFFF"))
         zone_type = str(data.get("zone", "normal"))
 
+        if is_unlimited and zone_type == "blocked":
+            raise ParsingError("Start and End hubs cannot be blocked zones !")
+
         new_zone = Zone(name, X, Y, final_max_drones, color, zone_type)
         self.graph.add_zone(new_zone)
 
