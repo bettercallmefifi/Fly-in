@@ -1,72 +1,85 @@
-# *This project has been created as part of the 42 curriculum by feel-idr.*
+*This project has been created as part of the 42 curriculum by feel-idr.*
+
+# Fly-in: Drone Routing Simulation
 
 ## Description
 
-**Fly-in** is a simulation project designed to manage a fleet of autonomous drones navigating a network of connected zones. The core objective is to route all drones from a designated `start_hub` to a `goal_hub` in the fewest possible turns, while respecting strict zone occupancy rules, connection capacities, and movement costs associated with different zone types (normal, restricted, priority, blocked).
+Fly-in is an object-oriented Python simulation designed to route a fleet of autonomous drones from a starting hub to an end hub while minimizing the total number of simulation turns. The system reads a custom map file defining a graph of zones and connections, validates the input formatting, calculates optimized flight paths, and simulates turn-by-turn movements. The simulation strictly respects all constraints, including multi-turn travel for restricted zones and simultaneous drone capacity limits for hubs and connections.
 
-## Instructions
+## Algorithm Choices and Implementation Strategy
 
-### Installation
+To achieve high efficiency and prevent bottlenecks, the project employs a custom pathfinding approach rather than sending all drones down a single shortest path:
 
-To set up the project, ensure you have Python 3.10+ installed. Create a virtual environment and install the required dependencies:
-
-```bash
-python3 -m venv venv
-source venv/bin/activate
-make install
-
-```
-
-### Execution
-
-You can run the simulation by passing a map file to the main script:
-
-```bash
-# Basic run
-make run MAP=maps/easy/01_linear_path.txt
-
-# Run with capacity info flag
-python3 src/main.py --capacity-info maps/easy/01_linear_path.txt
-
-```
-
-### Cleanup
-
-To remove temporary files and caches:
-
-```bash
-make clean
-
-```
-
-## Implementation Strategy
-
-The solution employs a **Dijkstra-based pathfinding algorithm** to dynamically determine the most efficient routes.
-
-* **Path Planning**: We calculate a weighted shortest path from the start to the end, applying penalties to zones to distribute drone traffic and prevent congestion.
+* **Cost Evaluation:** A modified Dijkstra's algorithm evaluates paths based on zone types, assigning a cost of 1.0 for normal zones, 2.0 for restricted zones, 0.5 for priority zones, and infinite cost for blocked zones.
 
 
-* **Turn Scheduling**: The simulation engine operates turn-by-turn. It evaluates zone and connection capacities in real-time. Drones destined for `restricted` zones are scheduled with a 2-turn movement cost, where the destination capacity is reserved immediately to prevent deadlocks.
+* **Traffic Distribution:** The system iterates through the graph, applying progressive penalties (`+0.01`) to heavily used zones. This forces the algorithm to discover multiple disjoint or overlapping paths, storing the combination that mathematically minimizes total turns for the specified number of drones.
 
 
-* **Animation**: The visualizer uses linear interpolation between nodes to provide a smooth graphical representation of drone movement, while allowing the user to navigate the simulation history using arrow keys.
+* **Turn Mechanics:** During simulation, drones are sorted by their path progress. The engine checks `max_drones` and `max_link_capacity` before validating a move. If a drone enters a restricted zone, it is placed in a delayed state and physically occupies the connection until the next turn.
 
 
 
 ## Visual Representation
 
-The project features two modes of feedback:
+A graphical interface built with Pygame translates the turn-by-turn console output into a clear, interactive visualizer.
 
-1. **Graphical Interface**: A `pygame`-based window that displays the graph layout, current occupancy of zones (`current/max`), and real-time movement of drones with interpolation.
+* **Dynamic Rendering:** The visualizer automatically scales the graph coordinates (`get_scaled_coords`) to fit seamlessly within the window, regardless of the map size.
 
 
-2. **Terminal Output**: A step-by-step log in the standard format `D<ID>-<zone>`, providing a clear history of all drone movements throughout the simulation.
+* **Real-Time Data:** Zones display their names alongside live occupancy metrics (e.g., `[1/2]`), and connections dynamically change from blue to red and increase in thickness when they reach their maximum link capacity.
+
+
+* **Interactive Interpolation:** Drone movements are smoothly animated between nodes. You can navigate through the simulation history manually using `->`, `SPACE`, or `ENTER` for the next turn, and `<-` or `BACKSPACE` for the previous turn.
+
+
+
+## Instructions
+
+The project is built using Python 3.10+ and relies on a `Makefile` to handle dependencies and execution.
+
+**Setup:**
+
+1. (Optional) Create a virtual environment:
+```bash
+make venv
+
+```
+
+
+2. Install the required dependencies (`pygame`, `flake8`, `mypy`):
+```bash
+make install
+
+```
+
+
+
+**Execution:**
+Run the simulation with a specific map file (defaults to `map` if not specified):
+
+```bash
+make run MAP=<path_to_map_file>
+
+```
+
+**Development & Debugging Tools:**
+
+* `make debug`: Runs the project using Python's built-in `pdb` debugger.
+
+
+* `make clean`: Removes all `.pyc` files and cache directories (`__pycache__`, `.mypy_cache`, `cache`).
+
+
+* `make lint`: Executes `flake8` and `mypy` with specific flags (`--warn-return-any`, `--check-untyped-defs`, etc.) to enforce strict type safety and code quality.
+
+
+* `make lint-strict`: Runs the strictest possible linting checks.
 
 
 
 ## Resources
 
-* **Documentation**: Official Python documentation for `typing`, `heapq`, and `pygame`.
-* **AI Usage**: AI tools were utilized to assist with the structure of the simulation loop, debugging `mypy` type-checking errors, and implementing the `pygame` interpolation logic. All generated code was reviewed, tested, and integrated by the developer to ensure full understanding.
-
----
+* [Pygame Documentation](https://www.pygame.org/docs/) - Referenced for rendering the graphical interface, drawing lines/circles, and handling user key-press events.
+* [Python heapq Module](https://docs.python.org/3/library/heapq.html) - Utilized for the priority queue implementation within the Dijkstra pathfinding algorithm.
+* **AI Usage Description:** AI was used to assist in brainstorming the math for dynamically scaling screen coordinates in the Pygame visualizer.
