@@ -148,7 +148,6 @@ class Parser:
         data: Dict[str, str | int] = {}
 
         if data_list.endswith("]"):
-            # CHECK STRICT: Exactement we7da '[' w we7da ']'
             if data_list.count("[") != 1 or data_list.count("]") != 1:
                 raise ParsingError(
                     "Invalid metadata: strictly one '[' and one ']'"
@@ -231,7 +230,6 @@ class Parser:
         data_list = parts[1].strip()
 
         if data_list.endswith("]"):
-            # CHECK STRICT: Exactement we7da '[' w we7da ']'
             if data_list.count("[") != 1 or data_list.count("]") != 1:
                 raise ParsingError(
                     "Invalid metadata: strictly one '[' and one ']' "
@@ -386,7 +384,6 @@ class Parser:
                 "Invalid metadata: most be contain just max_link_capacity !"
                 )
 
-        # CHECK STRICT: Exactement '=' we7da
         if data[0].count("=") != 1:
             raise ParsingError(
                 f"Invalid metadata format: exactly one '=' is "

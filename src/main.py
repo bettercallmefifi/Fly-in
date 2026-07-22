@@ -41,7 +41,6 @@ def main() -> None:
             print("There is no path from the start to the end zone!")
             return
 
-        # 7iyedna l'flag mn hna
         sim = Simulation(graph, parser.total_drones, best_paths)
         sim.run()
 
