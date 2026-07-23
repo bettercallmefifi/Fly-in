@@ -7,7 +7,7 @@ install:
 	python3 -m pip install -r requirements.txt
 
 run:
-	python3 src/main.py $(MAP)
+	python3 src/main.py --capacity-info $(MAP)
 
 debug:
 	python3 -m pdb src/main.py $(MAP)

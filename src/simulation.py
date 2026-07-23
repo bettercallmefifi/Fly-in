@@ -11,7 +11,8 @@ class Simulation:
             self,
             graph: Graph,
             total_drones: int,
-            best_paths: List[List[Any]]
+            best_paths: List[List[Any]],
+            flag: bool
             ) -> None:
         """Initialize the simulation with graph,
         total drones, and best paths."""
@@ -22,6 +23,7 @@ class Simulation:
 
         self.delayed_drones: Set[str] = set()
         self.history: List[Any] = []
+        self.flag = flag
 
         self.drones: List[Drone] = initialize_drones(
             self.total_drones, self.best_paths
@@ -112,6 +114,12 @@ class Simulation:
                         # NOTE: We do not increment next_zone occupancy here
                         # because it was already reserved in the previous turn.
                         raw_move = f"{drone.id}-{next_zone.name}"
+                        if self.flag and not is_end_zone:
+                            raw_move += f"-{
+                                next_zone.current_drones_inside
+                                }/{
+                                    next_zone.max_drones
+                                   }"
                         moves_this_turn.append(raw_move)
 
                     # 2. Drone is looking to move
@@ -160,6 +168,12 @@ class Simulation:
                                 conn.drones_on_link += 1
 
                                 raw_move = f"{drone.id}-{next_zone.name}"
+                                if self.flag and not is_end_zone:
+                                    raw_move += f"-{
+                                        next_zone.current_drones_inside
+									}/{
+                                        next_zone.max_drones
+									}"
                                 moves_this_turn.append(raw_move)
 
             if moves_this_turn:
